@@ -21,6 +21,14 @@ First you must create a virtual environment and activate it. Then install the de
 
 The collected data will be saved in a `track_data.db` sqlite file.
 
+### Map viewer
+In the same folder as the track mapper server, activate the virtual enviroment and run the `map_viewer.py` program.
+
+#### Controls
+- Mouse left click: Draw view.
+- Mouse scrool wheel: Zoom in/out.
+- Q/W: Change to the previous/next track.
+
 ## TODO List
 - Data collection
     - [x] Find and monitor relevant memory addresses to read
