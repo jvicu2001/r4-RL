@@ -24,6 +24,8 @@ The collected data will be saved in a `track_data.db` sqlite file.
 ### Map viewer
 In the same folder as the track mapper server, activate the virtual enviroment and run the `map_viewer.py` program.
 
+![](screenshots/map_viewer.png)
+
 #### Controls
 - Mouse left click: Draw view.
 - Mouse scrool wheel: Zoom in/out.
