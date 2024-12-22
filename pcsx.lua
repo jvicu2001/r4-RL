@@ -1,0 +1,1 @@
+loadfile("pcsx_lua/r4.lua", "bt")()

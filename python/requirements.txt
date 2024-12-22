@@ -1,0 +1,2 @@
+peewee==3.17.8
+protobuf==5.29.2

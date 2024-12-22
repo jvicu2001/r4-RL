@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+message TrackPoint {
+    uint32 track_id = 1;
+    int32 x_pos = 2;
+    int32 y_pos = 3;
+    int32 z_pos = 4;
+    uint32 lap_progress = 5;
+    int32 center_distance = 6;
+    uint32 side = 7;
+}
