@@ -3,7 +3,7 @@ PCSX.pauseEmulator()
 
 loadfile("pcsx_lua/memory.lua")()
 loadfile("pcsx_lua/map_capture.lua")()
-loadfile("pcsx_lua/send_car_data.lua")()
+loadfile("pcsx_lua/send_game_data.lua")()
 
 local function reload()
   PCSX.pauseEmulator()
@@ -165,7 +165,7 @@ function DrawImguiFrame()
   imgui.TableSetColumnIndex(0)
   mapCapture()
   imgui.TableSetColumnIndex(1)
-  sendCarData()
+  sendGameData()
   imgui.EndTable()
   imgui.End()
 end

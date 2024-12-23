@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+message GameInfo {
+    message CarInfo {
+        int32 x_pos = 1;
+        int32 y_pos = 2;
+        int32 z_pos = 3;
+        uint32 applied_direction = 4;
+        uint32 intended_direction = 5;
+
+        int32 speed = 6;
+        uint32 rpm = 7;
+        uint32 gear = 8;
+
+        uint32 gear_timeout = 9;
+        uint32 accel_lifted_timer = 10;
+
+        uint32 lap_progress = 11;
+        uint32 track_progress = 12;
+
+        bool collided = 13;
+        
+        bool traction_loss_fl = 14;
+        bool traction_loss_fr = 15;
+        bool traction_loss_rl = 16;
+        bool traction_loss_rr = 17;
+
+        bool wrong_way = 18;
+
+        bool free_fall = 19;
+
+        uint32 drift_timeout = 20;
+    }
+    message TrackInfo {
+        uint32 track_id = 1;
+        uint32 track_status = 2;
+    }
+    CarInfo car_info = 1;
+    TrackInfo track_info = 2;
+}

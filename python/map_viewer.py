@@ -7,7 +7,7 @@ import numpy as np
 
 from harvest_track import TrackData
 
-from proto import car_pb2
+from proto import game_pb2
 
 import draw_helper
 
@@ -27,16 +27,18 @@ def change_track(track_id: int = 0):
 
 points, points_l, points_r, points_count = change_track(0)
 
-# Car info socket parameters
+# Game info socket parameters
 UDP_HOST, UDP_PORT = "localhost", 7651
-car_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-car_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-car_socket.bind((UDP_HOST, UDP_PORT))
-car_socket.setblocking(False)
+game_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+game_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+game_socket.bind((UDP_HOST, UDP_PORT))
+game_socket.setblocking(False)
 
-# Car packet
-car_info: car_pb2.CarInfo = car_pb2.CarInfo()
-car_packet_recv_time = time.time()
+# Game packet
+game_info: game_pb2.GameInfo = game_pb2.GameInfo()
+car_info: game_pb2.GameInfo.CarInfo = game_info.CarInfo()
+track_info: game_pb2.GameInfo.TrackInfo = game_info.TrackInfo()
+game_packet_recv_time = time.time()
 
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
@@ -57,13 +59,20 @@ while not pr.window_should_close():
 
     ## Car info retrieval via socket
     try:
-        recv_data, recv_addr = car_socket.recvfrom(1024)
-        car_info.ParseFromString(recv_data)
-        # print(car_info)
+        recv_data, recv_addr = game_socket.recvfrom(1024)
+        game_info.ParseFromString(recv_data)
+        car_info = game_info.car_info
+        track_info = game_info.track_info
+        # print(game_info)
 
-        car_packet_recv_time = time.time()
+        game_packet_recv_time = time.time()
     except:
         pass
+
+    ## Check for map change
+    if track_info.track_id is not current_track:
+        current_track = track_info.track_id
+        points, points_l, points_r, points_count = change_track(current_track)
 
     ## Camera mouse movement
     if (pr.is_mouse_button_down(pr.MouseButton.MOUSE_BUTTON_LEFT)):
@@ -98,12 +107,12 @@ while not pr.window_should_close():
         camera.zoom = pr.clamp(camera.zoom*scale_factor, 0.00125, 64.0)
 
     ## Map change
-    if (pr.is_key_pressed(pr.KEY_Q) or pr.is_key_pressed(pr.KEY_W)):
-        if pr.is_key_pressed(pr.KEY_Q):
-            current_track = (current_track-1)%8
-        if pr.is_key_pressed(pr.KEY_W):
-            current_track = (current_track+1)%8
-        points, points_l, points_r, points_count = change_track(current_track)
+    # if (pr.is_key_pressed(pr.KEY_Q) or pr.is_key_pressed(pr.KEY_W)):
+    #     if pr.is_key_pressed(pr.KEY_Q):
+    #         current_track = (current_track-1)%8
+    #     if pr.is_key_pressed(pr.KEY_W):
+    #         current_track = (current_track+1)%8
+    #     points, points_l, points_r, points_count = change_track(current_track)
 
     # Draw
     pr.begin_drawing()
@@ -142,8 +151,8 @@ while not pr.window_should_close():
 
     info_text = f"""Points loaded: {points_count}
 Current track: {current_track}
-Time since last packet: {(time.time() - car_packet_recv_time):.2f}s
-Packet frequency: {(1/(time.time() - car_packet_recv_time)):.2f}Hz
+Time since last packet: {(time.time() - game_packet_recv_time):.2f}s
+Packet frequency: {(1/(time.time() - game_packet_recv_time)):.2f}Hz
 
 Car Info:
     Coords: X:{car_info.x_pos}, Y:{car_info.y_pos}, Z:{car_info.z_pos}
@@ -161,4 +170,4 @@ Car Info:
     pr.end_drawing()
 pr.close_window()
 
-car_socket.close()
+game_socket.close()

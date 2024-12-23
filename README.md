@@ -26,11 +26,13 @@ In the same folder as the track mapper server, activate the virtual enviroment a
 
 ![](screenshots/map_viewer.png)
 
+FIXME: Reverse tracks are currently unsuported and will crash the map viewer when selected in-game.
+
 #### Controls
 - Mouse left click: Draw view.
 - Mouse scrool wheel: Zoom in/out.
-- Q/W: Change to the previous/next track.
-- Z: Chase car
+- Z: Chase car.
+- X: Rotate camera with car while chasing.
 
 ## TODO List
 - Data collection
