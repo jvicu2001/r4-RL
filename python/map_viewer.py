@@ -17,9 +17,44 @@ db.connect()
 
 current_track = 0
 
+def get_track_name(track_id: int) -> str:
+    match track_id:
+        case 0:
+            return "Helter Skelter"
+        case 1:
+            return "Wonderhill"
+        case 2:
+            return "Edge of the earth"
+        case 3:
+            return "Out of blue"
+        case 4:
+            return "Phantomile"
+        case 5:
+            return "Brightest nite"
+        case 6:
+            return "Heaven and hell"
+        case 7:
+            return "Shooting Hoops"
+        case 8:
+            return "Helter Skelter (Reverse)"
+        case 9:
+            return "Wonderhill (Reverse)"
+        case 10:
+            return "Edge of the earth (Reverse)"
+        case 11:
+            return "Out of blue (Reverse)"
+        case 12:
+            return "Phantomile (Reverse)"
+        case 13:
+            return "Brightest nite (Reverse)"
+        case 14:
+            return "Heaven and hell (Reverse)"
+        case 15:
+            return "Shooting Hoops (Reverse)"
+
 # Get current track's points
 def change_track(track_id: int = 0):
-    points = TrackData.select().where(TrackData.track_id==track_id).order_by(TrackData.lap_progress)
+    points = TrackData.select().where(TrackData.track_id==track_id%8).order_by(TrackData.lap_progress)
     points_l = points.where(TrackData.side==0)
     points_r = points.where(TrackData.side==1)
     points_count = points.count()
@@ -150,7 +185,6 @@ while not pr.window_should_close():
 
 
     info_text = f"""Points loaded: {points_count}
-Current track: {current_track}
 Time since last packet: {(time.time() - game_packet_recv_time):.2f}s
 Packet frequency: {(1/(time.time() - game_packet_recv_time)):.2f}Hz
 
@@ -161,7 +195,20 @@ Car Info:
     
     Speed: {car_info.speed}
     RPM: {car_info.rpm}
-    Gear: {car_info.gear}"""
+    Gear: {car_info.gear}
+    
+    In Air: {"True" if car_info.free_fall else "False"}
+    Drift Timeout: {car_info.drift_timeout}
+    
+Track Info:
+    Current track: {get_track_name(track_info.track_id)}
+    Current lap: {track_info.lap}
+    Track Status: {
+        "Count down" if track_info.track_status is 1 
+        else "Racing/Replay" if track_info.track_status is 2 
+        else "Race Finished."}
+    Track Progress: {track_info.track_progress}
+    Lap Progress: {track_info.lap_progress}"""
     pr.draw_text(info_text, 10, 10, 15, pr.BLACK)
 
     mouse_pos: pr.Vector2 = pr.get_mouse_position()

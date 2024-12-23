@@ -15,9 +15,6 @@ message GameInfo {
         uint32 gear_timeout = 9;
         uint32 accel_lifted_timer = 10;
 
-        uint32 lap_progress = 11;
-        uint32 track_progress = 12;
-
         bool collided = 13;
         
         bool traction_loss_fl = 14;
@@ -34,6 +31,11 @@ message GameInfo {
     message TrackInfo {
         uint32 track_id = 1;
         uint32 track_status = 2;
+
+        int32 lap_progress = 3;
+        int32 track_progress = 4;
+
+        uint32 lap = 5;
     }
     CarInfo car_info = 1;
     TrackInfo track_info = 2;

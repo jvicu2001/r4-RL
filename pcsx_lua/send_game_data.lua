@@ -20,6 +20,8 @@ last_frame = readValue(mem, 0x800ac064, "uint32_t*")
 time_old = os.time()
 packets_sent = 0
 
+local last_drift_timeout = 0
+
 function sendGameData()
     if (imgui.CollapsingHeader("Game Capture", ImGuiTreeNodeFlags_None)) then
         toggledCaptureGame, activeCaptureGame = imgui.Checkbox("Capture Game info", activeCaptureGame)
@@ -48,9 +50,6 @@ function sendGameData()
                 car_info["gear_timeout"] = readValue(mem, 0x800ac2dc, "uint8_t*")
                 car_info["accel_lifted_timer"] = readValue(mem, 0x800ac2f8, "uint8_t*")
 
-                car_info["lap_progress"] = readValue(mem, 0x800ac23c, "int32_t*")
-                car_info["track_progress"] = readValue(mem, 0x800f684c, "int32_t*")
-
                 car_info["collided"] = (readValue(mem, 0x800ac250, "uint8_t*") ~= 0)
 
                 car_info["tracktion_loss_fl"] = (readValue(mem, 0x800ac2a0, "uint8_t*")==1)
@@ -63,14 +62,20 @@ function sendGameData()
                 car_info["free_fall"] = (readValue(mem, 0x800ac269, "uint8_t*")==1)
 
                 local drift_timeout = readValue(mem, 0x800ac2fc, "int32_t*")
-                if drift_timeout < 0 then
+                if drift_timeout < 0 or drift_timeout == last_drift_timeout then
                     drift_timeout = 0
                 end
                 car_info["drift_timeout"] = drift_timeout
+                last_drift_timeout = drift_timeout
 
                 -- Track Info
                 track_info["track_id"] = readValue(mem, 0x800ac800, "uint8_t*")
                 track_info["track_status"] = readValue(mem, 0x800ff860, "uint8_t*")
+
+                track_info["lap_progress"] = readValue(mem, 0x800ac23c, "int32_t*")
+                track_info["track_progress"] = readValue(mem, 0x800f684c, "int32_t*")
+
+                track_info["lap"] = readValue(mem, 0x800ac35a, "uint16_t*")
 
                 -- Game Info
                 game_info["car_info"] = car_info
