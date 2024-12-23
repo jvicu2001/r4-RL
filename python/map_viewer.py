@@ -94,9 +94,14 @@ while not pr.window_should_close():
         for n in range(ps.count()):
             pr.draw_line(ps[n-1].x_pos, -ps[n-1].z_pos, ps[n].x_pos, -ps[n].z_pos, pr.RED if ps[n].side==0 else pr.BLUE)
     
+    # Draw start line aprox
+    p_start_l = points_l[0]
+    p_start_r = points_r[0]
+    pr.draw_line(p_start_l.x_pos, -p_start_l.z_pos, p_start_r.x_pos, -p_start_r.z_pos, pr.GREEN)
+
     # Draw car
     pr.draw_circle(car_info.x_pos, -car_info.z_pos, 100.0, pr.BLACK)
-    ## Forward vector
+    ## Car vectors
     draw_helper.draw_arrow(
         car_info.x_pos, 
         -car_info.z_pos,
