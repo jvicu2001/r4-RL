@@ -43,6 +43,7 @@ camera.zoom = 0.01
 camera.target = pr.Vector2(points[0].x_pos - 40000, -points[0].z_pos - 40000)
 camera.offset = pr.Vector2(pr.get_screen_width()/2.0, pr.get_screen_height()/2.0)
 camera_follow_car = False
+camera_follow_car_rotation = False
 
 pr.set_target_fps(60)
 
@@ -73,11 +74,20 @@ while not pr.window_should_close():
     ## Change car chase mode
     if pr.is_key_pressed(pr.KEY_Z):
         camera_follow_car = not camera_follow_car
+    if pr.is_key_pressed(pr.KEY_X):
+        camera_follow_car_rotation = not camera_follow_car_rotation
+
+        # Reset camera rotation
+        if not camera_follow_car_rotation:
+            camera.rotation = 0.0
 
     ## Car chase
     if camera_follow_car:
         camera.offset = pr.Vector2(pr.get_screen_width()/2.0, pr.get_screen_height()/2.0)
         camera.target = pr.Vector2(car_info.x_pos, -car_info.z_pos)
+
+        if camera_follow_car_rotation:
+            camera.rotation = -(car_info.applied_direction*360)/4096
 
     ## Zoom
     wheel: float = pr.get_mouse_wheel_move()
