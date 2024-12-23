@@ -30,6 +30,7 @@ In the same folder as the track mapper server, activate the virtual enviroment a
 - Mouse left click: Draw view.
 - Mouse scrool wheel: Zoom in/out.
 - Q/W: Change to the previous/next track.
+- Z: Chase car
 
 ## TODO List
 - Data collection

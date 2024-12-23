@@ -41,6 +41,8 @@ car_packet_recv_time = time.time()
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
 camera.target = pr.Vector2(points[0].x_pos - 40000, -points[0].z_pos - 40000)
+camera.offset = pr.Vector2(pr.get_screen_width()/2.0, pr.get_screen_height()/2.0)
+camera_follow_car = False
 
 pr.set_target_fps(60)
 
@@ -62,11 +64,20 @@ while not pr.window_should_close():
     except:
         pass
 
-    ## Camera movement
+    ## Camera mouse movement
     if (pr.is_mouse_button_down(pr.MouseButton.MOUSE_BUTTON_LEFT)):
         delta: pr.Vector2 = pr.get_mouse_delta()
         delta = pr.vector2_scale(delta, -1.0/camera.zoom)
         camera.target = pr.vector2_add(camera.target, delta)
+
+    ## Change car chase mode
+    if pr.is_key_pressed(pr.KEY_Z):
+        camera_follow_car = not camera_follow_car
+
+    ## Car chase
+    if camera_follow_car:
+        camera.offset = pr.Vector2(pr.get_screen_width()/2.0, pr.get_screen_height()/2.0)
+        camera.target = pr.Vector2(car_info.x_pos, -car_info.z_pos)
 
     ## Zoom
     wheel: float = pr.get_mouse_wheel_move()
@@ -133,6 +144,10 @@ Car Info:
     RPM: {car_info.rpm}
     Gear: {car_info.gear}"""
     pr.draw_text(info_text, 10, 10, 15, pr.BLACK)
+
+    mouse_pos: pr.Vector2 = pr.get_mouse_position()
+    camera_pos: pr.Vector2 = pr.get_screen_to_world_2d(mouse_pos, camera)
+    pr.draw_text(f"Mouse pos: {camera_pos.x:.0f},  {camera_pos.y:.0f}", pr.get_screen_width()-300, 10, 15, pr.BLACK)
     pr.end_drawing()
 pr.close_window()
 
