@@ -89,8 +89,14 @@ while not pr.window_should_close():
     # Draw the walls
     for ps in [points_l, points_r]:
         for n in range(ps.count()):
-            pr.draw_line(ps[n-1].x_pos, ps[n-1].z_pos, ps[n].x_pos, ps[n].z_pos, pr.RED if ps[n].side==0 else pr.BLUE)
+            pr.draw_line(ps[n-1].x_pos, -ps[n-1].z_pos, ps[n].x_pos, -ps[n].z_pos, pr.RED if ps[n].side==0 else pr.BLUE)
+    
+    # Draw car
+    pr.draw_circle(car_info.x_pos, -car_info.z_pos, 100.0, pr.BLACK)
+
     pr.end_mode_2d()
+
+
 
     info_text = f"""Points loaded: {points_count}
 Current track: {current_track}
@@ -107,7 +113,6 @@ Car Info:
     Gear: {car_info.gear}"""
     pr.draw_text(info_text, 10, 10, 15, pr.BLACK)
     pr.end_drawing()
-    print(f"{(1/(time.time() - car_packet_recv_time)):.2f}")
 pr.close_window()
 
 car_socket.close()
