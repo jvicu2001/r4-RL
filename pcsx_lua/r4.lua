@@ -20,7 +20,7 @@ function carInfo()
     doSliderInt(mem, 0x800ac100, "Car Pitch", -100, 100, "int16_t*")            -- Car pitch, Forward/Backward inclination
     doSliderInt(mem, 0x800ac104, "Car Applied Direction", 0, 4096, "uint16_t*") -- Car's applied forward angle. Smoothly interpolates to 0x800ac340 when manually changed
     doSliderInt(mem, 0x800ac340, "Car Intended Direction", 0, 4096, "uint16_t*")-- Car's real forward angle where the car wants to go. Snaps to appplied direction after drift
-
+    -- Actual Car trayectory is a product between these 2 angles
 
     doSliderInt(mem, 0x800ac32a, "Current Gear", 0, 6, "uint16_t*")         -- Car's current engaged gear
     -- doSliderShort(mem, 0x800ac28d, "Current Gear", 0, 6)                 -- Clones 0x800ac23a
