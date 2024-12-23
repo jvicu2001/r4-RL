@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message CarInfo {
+    int32 x_pos = 1;
+    int32 y_pos = 2;
+    int32 z_pos = 3;
+    uint32 applied_direction = 4;
+    uint32 intended_direction = 5;
+
+    int32 speed = 6;
+    uint32 rpm = 7;
+    uint32 gear = 8;
+}

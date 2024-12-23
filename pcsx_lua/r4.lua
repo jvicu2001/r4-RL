@@ -3,11 +3,13 @@ PCSX.pauseEmulator()
 
 loadfile("pcsx_lua/memory.lua")()
 loadfile("pcsx_lua/map_capture.lua")()
+loadfile("pcsx_lua/send_car_data.lua")()
 
 local function reload()
   PCSX.pauseEmulator()
   loadfile("pcsx_lua/r4.lua")()
 end
+
 
 
 
@@ -122,6 +124,7 @@ function trackInfo()
   end
 end
 
+
 function DrawImguiFrame()
   local show = imgui.Begin("R4", true)
   if not show then imgui.End() return end
@@ -157,10 +160,12 @@ function DrawImguiFrame()
   imgui.EndTable()
 
   -- Track capture table
-  imgui.BeginTable("Track capture", 1, imgui.constant.TableFlags.Resizable)
+  imgui.BeginTable("Data capture", 2, imgui.constant.TableFlags.Resizable)
   imgui.TableNextRow()
   imgui.TableSetColumnIndex(0)
   mapCapture()
+  imgui.TableSetColumnIndex(1)
+  sendCarData()
   imgui.EndTable()
   imgui.End()
 end
