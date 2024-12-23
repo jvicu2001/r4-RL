@@ -25,9 +25,9 @@ udp_client = luv.new_udp({family="inet"})
 
 function mapCapture()
     if (imgui.CollapsingHeader("Track capture", ImGuiTreeNodeFlags_None)) then
-        toggledCapture, activeCapture = imgui.Checkbox("Capture track", activeCapture)
+        toggledCaptureMap, activeCaptureMap = imgui.Checkbox("Capture track", activeCaptureMap)
 
-        if activeCapture then
+        if activeCaptureMap then
             -- Check if a collision has happened in this frame
             lastColl = currColl
             currColl = readValue(mem, 0x800ac250, "uint8_t*")

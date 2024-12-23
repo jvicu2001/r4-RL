@@ -22,10 +22,10 @@ packets_sent = 0
 
 function sendCarData()
     if (imgui.CollapsingHeader("Car Capture", ImGuiTreeNodeFlags_None)) then
-        toggledCapture, activeCapture = imgui.Checkbox("Capture car info", activeCapture)
+        toggledCaptureCar, activeCaptureCar = imgui.Checkbox("Capture car info", activeCaptureCar)
         paused = readValue(mem, 0x800f4e18, "uint16_t*")
 
-        if activeCapture and paused==0 then
+        if activeCaptureCar and paused==0 then
             curr_frame = readValue(mem, 0x800ac064, "uint32_t*")
             if last_frame ~= curr_frame then    -- Enables us to send 30 packets per second
                 last_frame=curr_frame
