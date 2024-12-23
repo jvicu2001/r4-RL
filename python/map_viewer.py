@@ -3,10 +3,13 @@ import time
 
 import pyray as pr
 import peewee
+import numpy as np
 
 from harvest_track import TrackData
 
 from proto import car_pb2
+
+import draw_helper
 
 db = peewee.SqliteDatabase("track_data.db")
 db.connect()
@@ -37,7 +40,7 @@ car_packet_recv_time = time.time()
 
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
-camera.target = pr.Vector2(points[0].x_pos, points[0].z_pos)
+camera.target = pr.Vector2(points[0].x_pos - 40000, -points[0].z_pos - 40000)
 
 pr.set_target_fps(60)
 
@@ -93,6 +96,19 @@ while not pr.window_should_close():
     
     # Draw car
     pr.draw_circle(car_info.x_pos, -car_info.z_pos, 100.0, pr.BLACK)
+    ## Forward vector
+    draw_helper.draw_arrow(
+        car_info.x_pos, 
+        -car_info.z_pos,
+        (car_info.applied_direction*2*np.pi)/4096,
+        800,
+        pr.RED)
+    draw_helper.draw_arrow(
+        car_info.x_pos, 
+        -car_info.z_pos,
+        (car_info.intended_direction*2*np.pi)/4096,
+        800,
+        pr.BLUE)
 
     pr.end_mode_2d()
 
