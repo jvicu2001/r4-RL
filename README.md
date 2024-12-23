@@ -12,7 +12,9 @@ When opening PCSX-Redux, the pcsx.lua file on the root directory should load aut
 
 After loading a Ridge Racer Type 4 copy (not provided), navigate to the Time Attack section and load a track. The information shown on the R4 window will be correct then.
 
-For the track mapper client to start sending data, the "Capture Track" checkbox under the "Track capture" tab must be enabled. This client will not check if the server has received the datagrams, so you must make sure that the server is running beforehand.
+For the track mapper client to start sending data, the "Capture Track" checkbox under the "Track capture" tab must be enabled and kept open. This client will not check if the server has received the datagrams, so you must make sure that the server is running beforehand.
+
+For the map viewer to receive data, the "Capture Game info" checkbox under the "Game Capture" tab must be enabled and kept open.
 
 ### Track mapper server
 This is located under the "python" directory.
