@@ -6,6 +6,8 @@ import peewee
 import numpy as np
 
 from harvest_track import TrackData
+import track_helper
+import collision.collision_check
 
 from proto import game_pb2
 
@@ -14,43 +16,7 @@ import draw_helper
 db = peewee.SqliteDatabase("track_data.db")
 db.connect()
 
-
 current_track = 0
-
-def get_track_name(track_id: int) -> str:
-    match track_id:
-        case 0:
-            return "Helter Skelter"
-        case 1:
-            return "Wonderhill"
-        case 2:
-            return "Edge of the earth"
-        case 3:
-            return "Out of blue"
-        case 4:
-            return "Phantomile"
-        case 5:
-            return "Brightest nite"
-        case 6:
-            return "Heaven and hell"
-        case 7:
-            return "Shooting Hoops"
-        case 8:
-            return "Helter Skelter (Reverse)"
-        case 9:
-            return "Wonderhill (Reverse)"
-        case 10:
-            return "Edge of the earth (Reverse)"
-        case 11:
-            return "Out of blue (Reverse)"
-        case 12:
-            return "Phantomile (Reverse)"
-        case 13:
-            return "Brightest nite (Reverse)"
-        case 14:
-            return "Heaven and hell (Reverse)"
-        case 15:
-            return "Shooting Hoops (Reverse)"
 
 # Get current track's points
 def change_track(track_id: int = 0):
@@ -61,6 +27,10 @@ def change_track(track_id: int = 0):
     return points, points_l, points_r, points_count
 
 points, points_l, points_r, points_count = change_track(0)
+
+# Car angle converter
+def calculate_car_angle(raw_angle: int) -> float:
+    return (raw_angle*2*np.pi)/4096
 
 # Game info socket parameters
 UDP_HOST, UDP_PORT = "localhost", 7651
@@ -74,6 +44,12 @@ game_info: game_pb2.GameInfo = game_pb2.GameInfo()
 car_info: game_pb2.GameInfo.CarInfo = game_info.CarInfo()
 track_info: game_pb2.GameInfo.TrackInfo = game_info.TrackInfo()
 game_packet_recv_time = time.time()
+
+# Collision "rays"
+car_rays_maxdistance = 2000
+car_rays_amount = 5
+car_rays_enable = False
+car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, car_rays_amount, np.pi)
 
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
@@ -149,6 +125,19 @@ while not pr.window_should_close():
     #         current_track = (current_track+1)%8
     #     points, points_l, points_r, points_count = change_track(current_track)
 
+    ## Toggle Car Rays
+    if pr.is_key_pressed(pr.KEY_C):
+        car_rays_enable = not car_rays_enable
+
+    ## Car Rays
+    if car_rays_enable:
+        car_rays.test_rays(
+            lap_progress=track_info.lap_progress, 
+            car_angle=calculate_car_angle(car_info.applied_direction), 
+            car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
+            track_id=track_info.track_id,
+            points=points)
+
     # Draw
     pr.begin_drawing()
     pr.clear_background(pr.WHITE)
@@ -170,15 +159,22 @@ while not pr.window_should_close():
     draw_helper.draw_arrow(
         car_info.x_pos, 
         -car_info.z_pos,
-        (car_info.applied_direction*2*np.pi)/4096,
+        calculate_car_angle(car_info.applied_direction),
         800,
         pr.RED)
     draw_helper.draw_arrow(
         car_info.x_pos, 
         -car_info.z_pos,
-        (car_info.intended_direction*2*np.pi)/4096,
+        calculate_car_angle(car_info.intended_direction),
         800,
         pr.BLUE)
+
+    ## Car rays
+    if car_rays_enable:
+        car_rays.draw_rays(
+            car_info.x_pos, -car_info.z_pos,
+            calculate_car_angle(car_info.applied_direction),
+            pr.VIOLET)
 
     pr.end_mode_2d()
 
@@ -187,6 +183,7 @@ while not pr.window_should_close():
     info_text = f"""Points loaded: {points_count}
 Time since last packet: {(time.time() - game_packet_recv_time):.2f}s
 Packet frequency: {(1/(time.time() - game_packet_recv_time)):.2f}Hz
+FPS: {pr.get_fps()}
 
 Car Info:
     Coords: X:{car_info.x_pos}, Y:{car_info.y_pos}, Z:{car_info.z_pos}
@@ -201,14 +198,20 @@ Car Info:
     Drift Timeout: {car_info.drift_timeout}
     
 Track Info:
-    Current track: {get_track_name(track_info.track_id)}
+    Current track: {track_helper.get_track_name(track_info.track_id)}
     Current lap: {track_info.lap}
     Track Status: {
         "Count down" if track_info.track_status is 1 
         else "Racing/Replay" if track_info.track_status is 2 
         else "Race Finished."}
     Track Progress: {track_info.track_progress}
-    Lap Progress: {track_info.lap_progress}"""
+    Lap Progress: {track_info.lap_progress}
+"""
+
+    if car_rays_enable:
+        info_text = info_text + "\nDistance info:\n"
+        for ray in car_rays.rays:
+            info_text = info_text + f"  {ray.ray_angle:.2f}: {ray.distance}\n"
     pr.draw_text(info_text, 10, 10, 15, pr.BLACK)
 
     mouse_pos: pr.Vector2 = pr.get_mouse_position()

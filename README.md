@@ -28,20 +28,20 @@ In the same folder as the track mapper server, activate the virtual enviroment a
 
 ![](screenshots/map_viewer.png)
 
-FIXME: Reverse tracks are currently unsuported and will crash the map viewer when selected in-game.
-
 #### Controls
 - Mouse left click: Draw view.
 - Mouse scrool wheel: Zoom in/out.
 - Z: Chase car.
 - X: Rotate camera with car while chasing.
+- C: Toggle distance rays
 
 ## TODO List
 - Data collection
     - [x] Find and monitor relevant memory addresses to read
         - [ ] Finding competitor's data in memory could allow for the AI Agent to participate in Grand Prix mode
-    - [x] Sample track walls
+    - [ ] Sample track walls
         - This will allow us to make a simpler model by not needing visual input later
+        - FIXME: Collision samples don't account for the distance between the car position and the point of collision. This means the simulated car can go out of bounds. An offset must be added.
 - Wall distance detector
     - [ ] Build a simulated enviroment to cast rays to the track walls previously collected.
 - AI Agent
