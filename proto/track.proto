@@ -8,4 +8,5 @@ message TrackPoint {
     uint32 lap_progress = 5;
     int32 center_distance = 6;
     uint32 side = 7;
+    uint32 car_angle = 8;
 }

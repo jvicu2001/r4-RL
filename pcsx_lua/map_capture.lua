@@ -47,6 +47,8 @@ function mapCapture()
                 else
                     out_data["side"] = 0
                 end
+                
+                out_data["car_angle"] = readValue(mem, 0x800ac104, "uint16_t*")
 
                 pprint("Collision detected")
                 pprint(out_data)

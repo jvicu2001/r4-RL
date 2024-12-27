@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11proto/track.proto\"\x88\x01\n\nTrackPoint\x12\x10\n\x08track_id\x18\x01 \x01(\r\x12\r\n\x05x_pos\x18\x02 \x01(\x05\x12\r\n\x05y_pos\x18\x03 \x01(\x05\x12\r\n\x05z_pos\x18\x04 \x01(\x05\x12\x14\n\x0clap_progress\x18\x05 \x01(\r\x12\x17\n\x0f\x63\x65nter_distance\x18\x06 \x01(\x05\x12\x0c\n\x04side\x18\x07 \x01(\rb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11proto/track.proto\"\x9b\x01\n\nTrackPoint\x12\x10\n\x08track_id\x18\x01 \x01(\r\x12\r\n\x05x_pos\x18\x02 \x01(\x05\x12\r\n\x05y_pos\x18\x03 \x01(\x05\x12\r\n\x05z_pos\x18\x04 \x01(\x05\x12\x14\n\x0clap_progress\x18\x05 \x01(\r\x12\x17\n\x0f\x63\x65nter_distance\x18\x06 \x01(\x05\x12\x0c\n\x04side\x18\x07 \x01(\r\x12\x11\n\tcar_angle\x18\x08 \x01(\rb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,5 +32,5 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.track_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_TRACKPOINT']._serialized_start=22
-  _globals['_TRACKPOINT']._serialized_end=158
+  _globals['_TRACKPOINT']._serialized_end=177
 # @@protoc_insertion_point(module_scope)
