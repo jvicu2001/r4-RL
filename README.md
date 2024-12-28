@@ -33,7 +33,7 @@ In the same folder as the track mapper server, activate the virtual enviroment a
 - Mouse scrool wheel: Zoom in/out.
 - Z: Chase car.
 - X: Rotate camera with car while chasing.
-- C: Toggle distance rays
+- C: Toggle distance rays (Buggy)
 
 ## TODO List
 - Data collection
