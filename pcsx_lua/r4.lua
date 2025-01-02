@@ -124,8 +124,7 @@ function trackInfo()
   end
 end
 
-
-function DrawImguiFrame()
+function MainDrawFrame()
   local show = imgui.Begin("R4", true)
   if not show then imgui.End() return end
 
@@ -168,6 +167,11 @@ function DrawImguiFrame()
   sendGameData()
   imgui.EndTable()
   imgui.End()
+end
+
+function DrawImguiFrame()
+  MainDrawFrame()
+  SaveDataFrame()
 end
 
 PCSX.resumeEmulator()

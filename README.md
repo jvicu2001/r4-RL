@@ -35,6 +35,14 @@ In the same folder as the track mapper server, activate the virtual enviroment a
 - X: Rotate camera with car while chasing.
 - C: Toggle distance rays (Buggy)
 
+### Sector-based asset extractor
+On PCSX-Redux, there will be a menu called "Save R4.BIN Files by Sector". In the Size in sectors field you have to enter the `sectors` number given by the "CdRead Invoked" print in console, and in the Initial sector field you have to enter the `final_sector` number given by the  first "CdPosToInt Invoked" print after the "CdRead" one. You can enter a custom filename.
+
+The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in the `extracted/` folder.
+
+![](screenshots/save_assets_values.png)
+
+
 ## TODO List
 - Data collection
     - [x] Find and monitor relevant memory addresses to read
