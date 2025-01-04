@@ -8,13 +8,31 @@ local size = 0
 local filename = ""
 
 
-function SaveDataFrame() 
-    local show = imgui.Begin("Save R4.BIN Files by Sector", true)
+function SaveDataFrame()
+    local show = imgui.Begin("Save R4.BIN Files", true)
     if not show then imgui.End() return end
-  
+
     if (imgui.Button("Reload")) then
       reload()
     end
+
+    imgui.Separator()
+
+    if (imgui.Button("Save R4.BIN")) then
+        local iso = PCSX.getCurrentIso()
+
+        local data = iso:createReader():open("R4.BIN;1")
+        
+        local new_file = Support.File.open(
+            "extracted/R4.BIN", 
+            "CREATE")
+
+        new_file:write(data:read(data:size()))
+        new_file:close()
+        data:close()
+    end
+
+    imgui.Separator()
 
     -- Replace with TextWrapped once available
     imgui.TextUnformatted('Use the printed "CdRead Invoked" sector value \nand the first "CdPosToInt Invoked" final_sector value after the "CdRead" \non console here.')

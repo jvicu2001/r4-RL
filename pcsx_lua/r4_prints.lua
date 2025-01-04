@@ -54,15 +54,18 @@ r4_printf_bp = PCSX.addBreakpoint(0x8001e844, 'Exec', 4, "Print", function(addre
       print('Error while running Lua breakpoint callback: ' .. msg)
   end
 end)
+r4_printf_bp:disable()
 
 r4_print_bp = PCSX.addBreakpoint(0x800965b8, 'Exec', 4, "Print", function(address, width, cause)
   pprint(readStringFromMem(PCSX.getRegisters().GPR.n.a0))
 end)
+r4_print_bp:disable()
 
 r4_CdRead_log = PCSX.addBreakpoint(0x8008f0d0, 'Exec', 4, "CdRead", function(address, width, cause)
   local regs = PCSX.getRegisters().GPR.n
   pprint(string.format("CdRead Invoked: sectors: %d, buf: 0x%x, mode:0x%x", regs.a0, regs.a1, regs.a2))
 end)
+r4_CdRead_log:disable()
 
 r4_CdSearchFile_log = PCSX.addBreakpoint(0x8008e060, 'Exec', 4, "CdSearchFile", function(address, width, cause)
   local regs = PCSX.getRegisters().GPR.n
@@ -74,6 +77,7 @@ r4_CdSearchFile_log = PCSX.addBreakpoint(0x8008e060, 'Exec', 4, "CdSearchFile", 
   -- end)
 
 end)
+r4_CdSearchFile_log:disable()
 
 r4_CdPosToInt_log = PCSX.addBreakpoint(0x8008c880, 'Exec', 4, "CdPosToInt", function(address, width, cause)
   local a0 = PCSX.getRegisters().GPR.n.a0
@@ -90,3 +94,25 @@ r4_CdPosToInt_log = PCSX.addBreakpoint(0x8008c880, 'Exec', 4, "CdPosToInt", func
   local s_out = string.format("CdPosToInt Invoked: minute: %d, second: %d, sector: %d, track: %d, final_sector: %d", minutes, seconds, sector, track, final_sector)
   pprint(s_out)
 end)
+r4_CdPosToInt_log:disable()
+
+R4_logging_enabled = false
+
+function R4LoggingToggle()
+  changed, R4_logging_enabled = imgui.Checkbox("Enable Game internal and CD logs.", R4_logging_enabled)
+  if changed then
+    if value then
+      r4_CdPosToInt_log:enable()
+      r4_CdRead_log:enable()
+      r4_CdSearchFile_log:enable()
+      r4_print_bp:enable()
+      r4_printf_bp:enable()
+    else
+      r4_CdPosToInt_log:disable()
+      r4_CdRead_log:disable()
+      r4_CdSearchFile_log:disable()
+      r4_print_bp:disable()
+      r4_printf_bp:disable()
+    end
+  end
+end

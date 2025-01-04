@@ -2,7 +2,6 @@ pprint("R4 Info script loaded sucessfully")
 PCSX.pauseEmulator()
 
 loadfile("pcsx_lua/memory.lua")()
-loadfile("pcsx_lua/map_capture.lua")()
 loadfile("pcsx_lua/send_game_data.lua")()
 
 local function reload()
@@ -162,10 +161,10 @@ function MainDrawFrame()
   imgui.BeginTable("Data capture", 2, imgui.constant.TableFlags.Resizable)
   imgui.TableNextRow()
   imgui.TableSetColumnIndex(0)
-  mapCapture()
-  imgui.TableSetColumnIndex(1)
   sendGameData()
   imgui.EndTable()
+
+  R4LoggingToggle()
   imgui.End()
 end
 

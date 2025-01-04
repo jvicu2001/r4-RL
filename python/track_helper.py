@@ -79,4 +79,41 @@ def get_track_lenght(track_id: int) -> int:
             return TrackLenght.HEAVEN.value
         case 15:
             return TrackLenght.SHOOTING.value
-            
+
+
+class Track():
+    def __init__(self, name, id):
+        self.name = name
+        self.id = id
+        self.waypoints = []
+
+    def __str__(self):
+        return f"Track {self.name}: {len(self.waypoints)} waypoints."
+
+    def add_waypoint(self, x,z,y,y_tangent,
+    right_roadway_width, left_roadway_width, dist_to_next_waypoint, 
+    right_shoulder_width, left_shoulder_width):
+        self.waypoints.append(self.Waypoint(
+            x,z,y,y_tangent,right_roadway_width,left_roadway_width, dist_to_next_waypoint, 
+            right_shoulder_width,left_shoulder_width))
+
+    class Waypoint():
+        def __init__(self, x,z,y,y_tangent,
+        right_roadway_width, left_roadway_width, dist_to_next_waypoint, 
+        right_shoulder_width, left_shoulder_width):
+            self.x = x
+            self.z = z
+            self.y = y
+            self.y_tangent = y_tangent
+            self.right_roadway_width = right_roadway_width
+            self.left_roadway_width = left_roadway_width
+            self.dist_to_next_waypoint = dist_to_next_waypoint
+            self.right_shoulder_width = right_shoulder_width
+            self.left_shoulder_width = left_shoulder_width
+
+        def __str__(self):
+            return f"""x, y, z: {self.x}, {self.y}, {self.z}
+y_tangent: {self.y_tangent}
+left/right roadway width: {self.left_roadway_width}, {self.right_roadway_width}
+left/right shoulder width: {self.left_shoulder_width}, {self.right_shoulder_width}
+distance to next waypoint: {self.dist_to_next_waypoint}"""
