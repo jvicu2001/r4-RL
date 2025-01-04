@@ -5,26 +5,20 @@ A project to make a AI agent to race in Ridge Racer Type 4.
 To make an AI agent that can navigate, drive fast and potentially discover strategies and make lap records on Namco® R4: Ridge Racer Type 4™
 
 ## How to run
-### Memory observers and track mapper client (in PCSX-Redux)
+### Memory observers and file extractor (in PCSX-Redux)
 The project expects that the PCSX-Redux executable is located and launched from the project's root directory.
 
-When opening PCSX-Redux, the pcsx.lua file on the root directory should load automatically, loading the rest of the modules and showing a "R4" window with all the info.
+When opening PCSX-Redux, the pcsx.lua file on the root directory should load automatically, loading the rest of the modules and showing a "R4" window with all the game info, plus a check.
 
-After loading a Ridge Racer Type 4 copy (not provided), navigate to the Time Attack section and load a track. The information shown on the R4 window will be correct then.
+For the first time only, once you load the game in PCSX-Redux, extract the `R4.BIN` file pressing the "Save R4.BIN" button on the "Save R4.BIN Files" window.
 
-For the track mapper client to start sending data, the "Capture Track" checkbox under the "Track capture" tab must be enabled and kept open. This client will not check if the server has received the datagrams, so you must make sure that the server is running beforehand.
-
-For the map viewer to receive data, the "Capture Game info" checkbox under the "Game Capture" tab must be enabled and kept open.
-
-### Track mapper server
+### Track info extractor
 This is located under the "python" directory.
 
-First you must create a virtual environment and activate it. Then install the dependencies with `pip install -r requirements.txt` and run the `harvest_track.py` program.
-
-The collected data will be saved in a `track_data.db` sqlite file.
+After extracting the `R4.BIN` file, just run this script with `python extract_tracks.py`
 
 ### Map viewer
-In the same folder as the track mapper server, activate the virtual enviroment and run the `map_viewer.py` program.
+In the same folder as the track info extractor, activate the virtual enviroment and run the `map_viewer.py` program.
 
 ![](screenshots/map_viewer.png)
 
@@ -57,3 +51,6 @@ The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in
     - [ ] Connect the model to PCSX-Redux
     - [ ] Train and adjust hyperparameters
     - [ ] Draw the model's output to PCSX-Redux screen using NanoVG
+
+# Credits
+- Whitehole (@whiteh0le) for providing the tracks' waypoint offsets and struct, enabling to use accurate track data for the simulation.
