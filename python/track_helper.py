@@ -116,7 +116,7 @@ class Track():
             self.right_shoulder_width = right_shoulder_width
             self.left_shoulder_width = left_shoulder_width
 
-            self.process()
+            self.process(1.5)
 
         def __str__(self):
             return f"""x, y, z: {self.x}, {self.y}, {self.z}

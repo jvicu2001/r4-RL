@@ -12,7 +12,7 @@ from proto import game_pb2
 
 import draw_helper
 
-from utils import calculate_angle
+from utils import calculate_angle, calculate_point_displacement
 
 # Load tracks
 tracks = []
@@ -132,6 +132,27 @@ while not pr.window_should_close():
     #         track_id=track_info.track_id,
     #         points=points)
 
+    ## Calculate bounding box
+    bbox1_x, bbox1_z = calculate_point_displacement(
+        car_info.x_pos + car_info.bbox_vx1,
+        -(car_info.z_pos + car_info.bbox_vz1),
+        calculate_angle(car_info.applied_direction), -123)
+    
+    bbox2_x, bbox2_z = calculate_point_displacement(
+        car_info.x_pos + car_info.bbox_vx2,
+        -(car_info.z_pos + car_info.bbox_vz2),
+        calculate_angle(car_info.applied_direction), -123)
+
+    bbox3_x, bbox3_z = calculate_point_displacement(
+        car_info.x_pos + car_info.bbox_vx3,
+        -(car_info.z_pos + car_info.bbox_vz3),
+        calculate_angle(car_info.applied_direction), -123)
+
+    bbox4_x, bbox4_z = calculate_point_displacement(
+        car_info.x_pos + car_info.bbox_vx4,
+        -(car_info.z_pos + car_info.bbox_vz4),
+        calculate_angle(car_info.applied_direction), -123)
+
     # Draw
     pr.begin_drawing()
     pr.clear_background(pr.WHITE)
@@ -210,6 +231,9 @@ while not pr.window_should_close():
             int(waypoint.right_shoulder.x), 
             int(waypoint.right_shoulder.y), pr.GRAY)
 
+            pr.draw_text(f"{int(waypoint.right_shoulder.x)} {int(waypoint.right_shoulder.y)}",
+            int(waypoint.right_shoulder.x), int(waypoint.right_shoulder.y), 15, pr.BLACK)
+
             # Connect waypoint sides
             pr.draw_line(int(waypoint.left_shoulder.x), 
             int(waypoint.left_shoulder.y), 
@@ -229,33 +253,46 @@ while not pr.window_should_close():
 
     # Draw car Bounding Box
     pr.draw_line(
-        car_info.x_pos + car_info.bbox_vx1,
-        -(car_info.z_pos + car_info.bbox_vz1),
-        car_info.x_pos + car_info.bbox_vx2,
-        -(car_info.z_pos + car_info.bbox_vz2),
+        bbox1_x,
+        bbox1_z,
+        bbox2_x,
+        bbox2_z,
         pr.BLACK
     )
+
     pr.draw_line(
-        car_info.x_pos + car_info.bbox_vx2,
-        -(car_info.z_pos + car_info.bbox_vz2),
-        car_info.x_pos + car_info.bbox_vx4,
-        -(car_info.z_pos + car_info.bbox_vz4),
+        bbox2_x,
+        bbox2_z,
+        bbox4_x,
+        bbox4_z,
         pr.BLACK
     )
+
     pr.draw_line(
-        car_info.x_pos + car_info.bbox_vx4,
-        -(car_info.z_pos + car_info.bbox_vz4),
-        car_info.x_pos + car_info.bbox_vx3,
-        -(car_info.z_pos + car_info.bbox_vz3),
+        bbox4_x,
+        bbox4_z,
+        bbox3_x,
+        bbox3_z,
         pr.BLACK
     )
+    
     pr.draw_line(
-        car_info.x_pos + car_info.bbox_vx3,
-        -(car_info.z_pos + car_info.bbox_vz3),
-        car_info.x_pos + car_info.bbox_vx1,
-        -(car_info.z_pos + car_info.bbox_vz1),
+        bbox3_x,
+        bbox3_z,
+        bbox1_x,
+        bbox1_z,
         pr.BLACK
     )
+
+    if not track_draw_full:
+        pr.draw_text(f"{bbox1_x} {bbox1_z}",
+        bbox1_x, bbox1_z, 15, pr.BLACK)
+        pr.draw_text(f"{bbox2_x} {bbox2_z}",
+        bbox2_x, bbox2_z, 15, pr.BLACK)
+        pr.draw_text(f"{bbox3_x} {bbox3_z}",
+        bbox3_x, bbox3_z, 15, pr.BLACK)
+        pr.draw_text(f"{bbox4_x} {bbox4_z}",
+        bbox4_x, bbox4_z, 15, pr.BLACK)
 
     ## Car vectors
     draw_helper.draw_arrow(
