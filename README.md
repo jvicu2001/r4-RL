@@ -27,10 +27,11 @@ In the same folder as the track info extractor, activate the virtual enviroment 
 - Mouse scrool wheel: Zoom in/out.
 - Z: Chase car.
 - X: Rotate camera with car while chasing.
-- C: Toggle distance rays (Buggy)
+- C: Toggle distance rays (Currently unavailable)
+- V: Toggle between polygon track drawing or line/debug drawing mode.
 
 ### Sector-based asset extractor
-On PCSX-Redux, there will be a menu called "Save R4.BIN Files by Sector". In the Size in sectors field you have to enter the `sectors` number given by the "CdRead Invoked" print in console, and in the Initial sector field you have to enter the `final_sector` number given by the  first "CdPosToInt Invoked" print after the "CdRead" one. You can enter a custom filename.
+On PCSX-Redux, there will be a menu called "Save R4.BIN Files". In the Size in sectors field you have to enter the `sectors` number given by the "CdRead Invoked" print in console, and in the Initial sector field you have to enter the `final_sector` number given by the  first "CdPosToInt Invoked" print after the "CdRead" one. You can enter a custom filename.
 
 The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in the `extracted/` folder.
 
@@ -41,9 +42,9 @@ The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in
 - Data collection
     - [x] Find and monitor relevant memory addresses to read
         - [ ] Finding competitor's data in memory could allow for the AI Agent to participate in Grand Prix mode
-    - [ ] Sample track walls
+    - [x] Sample track walls
         - This will allow us to make a simpler model by not needing visual input later
-        - FIXME: Collision samples don't account for the distance between the car position and the point of collision. This means the simulated car can go out of bounds. An offset must be added.
+        - FIXME: Collision samples don't account for the distance between the car position and the point of collision. This means the simulated car can go out of bounds. There must be an unaccounted displacement or scaling around.
 - Wall distance detector
     - [ ] Build a simulated enviroment to cast rays to the track walls previously collected.
 - AI Agent
@@ -53,4 +54,4 @@ The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in
     - [ ] Draw the model's output to PCSX-Redux screen using NanoVG
 
 # Credits
-- Whitehole (@whiteh0le) for providing the tracks' waypoint offsets and struct, enabling to use accurate track data for the simulation.
+- Whitehole (@whiteh0le) for providing the tracks' waypoint offsets and struct, as well as the cars' bounding box, enabling to use accurate track data for the simulation.

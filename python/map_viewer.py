@@ -2,35 +2,34 @@ import socket
 import time
 
 import pyray as pr
-import peewee
 import numpy as np
 
-from harvest_track import TrackData
 import track_helper
-import collision.collision_check
+# import collision.collision_check
+import extract_tracks
 
 from proto import game_pb2
 
 import draw_helper
 
-db = peewee.SqliteDatabase("track_data.db")
-db.connect()
+from utils import calculate_angle
 
-current_track = 0
+# Load tracks
+tracks = []
+try:
+    tracks = sorted(extract_tracks.get_tracks(), key=lambda x: x.id)
+except Exception as err:
+    print("Error fetching track info. Have you extracted R4.BIN yet?")
+    exit()
 
-# Get current track's points
+# Get current track
 def change_track(track_id: int = 0):
-    points = TrackData.select().where(TrackData.track_id==track_id%8).order_by(TrackData.lap_progress)
-    points_l = points.where(TrackData.side==0)
-    points_r = points.where(TrackData.side==1)
-    points_count = points.count()
-    return points, points_l, points_r, points_count
+    return tracks[track_id%8]
 
-points, points_l, points_r, points_count = change_track(0)
+current_track: track_helper.Track = change_track(0)
 
-# Car angle converter
-def calculate_car_angle(raw_angle: int) -> float:
-    return (raw_angle*2*np.pi)/4096
+# Track drawing mode
+track_draw_full = True
 
 # Game info socket parameters
 UDP_HOST, UDP_PORT = "localhost", 7651
@@ -46,14 +45,14 @@ track_info: game_pb2.GameInfo.TrackInfo = game_info.TrackInfo()
 game_packet_recv_time = time.time()
 
 # Collision "rays"
-car_rays_maxdistance = 2000
-car_rays_amount = 5
-car_rays_enable = False
-car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, car_rays_amount, np.pi)
+# car_rays_maxdistance = 2000
+# car_rays_amount = 5
+# car_rays_enable = False
+# car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, car_rays_amount, np.pi)
 
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
-camera.target = pr.Vector2(points[0].x_pos - 40000, -points[0].z_pos - 40000)
+camera.target = pr.Vector2(0, 0)
 camera.offset = pr.Vector2(pr.get_screen_width()/2.0, pr.get_screen_height()/2.0)
 camera_follow_car = False
 camera_follow_car_rotation = False
@@ -81,9 +80,8 @@ while not pr.window_should_close():
         pass
 
     ## Check for map change
-    if track_info.track_id is not current_track:
-        current_track = track_info.track_id
-        points, points_l, points_r, points_count = change_track(current_track)
+    if track_info.track_id is not current_track.id:
+        current_track = change_track(track_info.track_id)
 
     ## Camera mouse movement
     if (pr.is_mouse_button_down(pr.MouseButton.MOUSE_BUTTON_LEFT)):
@@ -117,71 +115,174 @@ while not pr.window_should_close():
             scale_factor = 1.0/scale_factor
         camera.zoom = pr.clamp(camera.zoom*scale_factor, 0.00125, 64.0)
 
-    ## Map change
-    # if (pr.is_key_pressed(pr.KEY_Q) or pr.is_key_pressed(pr.KEY_W)):
-    #     if pr.is_key_pressed(pr.KEY_Q):
-    #         current_track = (current_track-1)%8
-    #     if pr.is_key_pressed(pr.KEY_W):
-    #         current_track = (current_track+1)%8
-    #     points, points_l, points_r, points_count = change_track(current_track)
+    ## Toggle track drawing mode
+    if (pr.is_key_pressed(pr.KEY_V)):
+        track_draw_full = not track_draw_full
 
     ## Toggle Car Rays
-    if pr.is_key_pressed(pr.KEY_C):
-        car_rays_enable = not car_rays_enable
+    # if pr.is_key_pressed(pr.KEY_C):
+    #     car_rays_enable = not car_rays_enable
 
     ## Car Rays
-    if car_rays_enable:
-        car_rays.test_rays(
-            lap_progress=track_info.lap_progress, 
-            car_angle=calculate_car_angle(car_info.applied_direction), 
-            car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
-            track_id=track_info.track_id,
-            points=points)
+    # if car_rays_enable:
+    #     car_rays.test_rays(
+    #         lap_progress=track_info.lap_progress, 
+    #         car_angle=calculate_angle(car_info.applied_direction), 
+    #         car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
+    #         track_id=track_info.track_id,
+    #         points=points)
 
     # Draw
     pr.begin_drawing()
     pr.clear_background(pr.WHITE)
 
     pr.begin_mode_2d(camera)
-    # Draw the walls
-    for ps in [points_l, points_r]:
-        for n in range(ps.count()):
-            pr.draw_line(ps[n-1].x_pos, -ps[n-1].z_pos, ps[n].x_pos, -ps[n].z_pos, pr.RED if ps[n].side==0 else pr.BLUE)
-    
-    # Draw start line aprox
-    p_start_l = points_l[0]
-    p_start_r = points_r[0]
-    pr.draw_line(p_start_l.x_pos, -p_start_l.z_pos, p_start_r.x_pos, -p_start_r.z_pos, pr.GREEN)
 
-    # Draw car
-    pr.draw_circle(car_info.x_pos, -car_info.z_pos, 100.0, pr.BLACK)
+    # Draw track
+    for waypoint_n in range(len(current_track.waypoints)):
+        waypoint = current_track.waypoints[waypoint_n]
+        last_waypoint = current_track.waypoints[waypoint_n-1]
+
+        ## Draw the road as polygons
+        if track_draw_full:
+            # Draw road
+            pr.draw_triangle(
+                last_waypoint.left_roadway,
+                waypoint.left_roadway,
+                last_waypoint.right_roadway,
+                pr.GRAY
+                )
+            pr.draw_triangle(
+                waypoint.left_roadway,
+                waypoint.right_roadway,
+                last_waypoint.right_roadway,
+                pr.GRAY
+                )
+
+            # Draw shoulders
+            ## Left shoulders
+            pr.draw_triangle(
+                last_waypoint.left_shoulder,
+                waypoint.left_shoulder,
+                last_waypoint.left_roadway,
+                pr.BROWN
+                )
+            pr.draw_triangle(
+                waypoint.left_roadway, 
+                last_waypoint.left_roadway,
+                waypoint.left_shoulder,
+                pr.BROWN
+                )
+
+            ## Right shoulders
+            pr.draw_triangle(
+                last_waypoint.right_roadway,
+                waypoint.right_shoulder,
+                last_waypoint.right_shoulder,
+                pr.BROWN
+                )
+            pr.draw_triangle(
+                waypoint.right_shoulder, 
+                last_waypoint.right_roadway,
+                waypoint.right_roadway,
+                pr.BROWN
+                )
+        else:
+            # Draw road
+            pr.draw_line(int(last_waypoint.left_roadway.x), 
+            int(last_waypoint.left_roadway.y), 
+            int(waypoint.left_roadway.x), 
+            int(waypoint.left_roadway.y), pr.BROWN)
+
+            pr.draw_line(int(last_waypoint.right_roadway.x), 
+            int(last_waypoint.right_roadway.y), 
+            int(waypoint.right_roadway.x), 
+            int(waypoint.right_roadway.y), pr.BROWN)
+
+            # Draw shoulders
+            pr.draw_line(int(last_waypoint.left_shoulder.x), 
+            int(last_waypoint.left_shoulder.y), 
+            int(waypoint.left_shoulder.x), 
+            int(waypoint.left_shoulder.y), pr.GRAY)
+
+            pr.draw_line(int(last_waypoint.right_shoulder.x), 
+            int(last_waypoint.right_shoulder.y), 
+            int(waypoint.right_shoulder.x), 
+            int(waypoint.right_shoulder.y), pr.GRAY)
+
+            # Connect waypoint sides
+            pr.draw_line(int(waypoint.left_shoulder.x), 
+            int(waypoint.left_shoulder.y), 
+            int(waypoint.right_shoulder.x), 
+            int(waypoint.right_shoulder.y), pr.GREEN)
+
+            pr.draw_line(int(waypoint.left_roadway.x), 
+            int(waypoint.left_roadway.y), 
+            int(waypoint.right_roadway.x), 
+            int(waypoint.right_roadway.y), pr.GREEN)
+
+            pr.draw_circle(int(waypoint.x), int(waypoint.z), 25.0, pr.GREEN)
+
+            # Draw waypoint order and distance to next waypoint
+            pr.draw_text(f"{waypoint_n}         {waypoint.dist_to_next_waypoint}",
+                waypoint.x - 110, waypoint.z + 30, 30, pr.BLACK)
+
+    # Draw car Bounding Box
+    pr.draw_line(
+        car_info.x_pos + car_info.bbox_vx1,
+        -(car_info.z_pos + car_info.bbox_vz1),
+        car_info.x_pos + car_info.bbox_vx2,
+        -(car_info.z_pos + car_info.bbox_vz2),
+        pr.BLACK
+    )
+    pr.draw_line(
+        car_info.x_pos + car_info.bbox_vx2,
+        -(car_info.z_pos + car_info.bbox_vz2),
+        car_info.x_pos + car_info.bbox_vx4,
+        -(car_info.z_pos + car_info.bbox_vz4),
+        pr.BLACK
+    )
+    pr.draw_line(
+        car_info.x_pos + car_info.bbox_vx4,
+        -(car_info.z_pos + car_info.bbox_vz4),
+        car_info.x_pos + car_info.bbox_vx3,
+        -(car_info.z_pos + car_info.bbox_vz3),
+        pr.BLACK
+    )
+    pr.draw_line(
+        car_info.x_pos + car_info.bbox_vx3,
+        -(car_info.z_pos + car_info.bbox_vz3),
+        car_info.x_pos + car_info.bbox_vx1,
+        -(car_info.z_pos + car_info.bbox_vz1),
+        pr.BLACK
+    )
+
     ## Car vectors
     draw_helper.draw_arrow(
         car_info.x_pos, 
         -car_info.z_pos,
-        calculate_car_angle(car_info.applied_direction),
+        calculate_angle(car_info.applied_direction),
         800,
         pr.RED)
     draw_helper.draw_arrow(
         car_info.x_pos, 
         -car_info.z_pos,
-        calculate_car_angle(car_info.intended_direction),
+        calculate_angle(car_info.intended_direction),
         800,
         pr.BLUE)
 
     ## Car rays
-    if car_rays_enable:
-        car_rays.draw_rays(
-            car_info.x_pos, -car_info.z_pos,
-            calculate_car_angle(car_info.applied_direction),
-            pr.VIOLET)
+    # if car_rays_enable:
+    #     car_rays.draw_rays(
+    #         car_info.x_pos, -car_info.z_pos,
+    #         calculate_angle(car_info.applied_direction),
+    #         pr.VIOLET)
 
     pr.end_mode_2d()
 
 
 
-    info_text = f"""Points loaded: {points_count}
-Time since last packet: {(time.time() - game_packet_recv_time):.2f}s
+    info_text = f"""Time since last packet: {(time.time() - game_packet_recv_time):.2f}s
 Packet frequency: {(1/(time.time() - game_packet_recv_time)):.2f}Hz
 FPS: {pr.get_fps()}
 
@@ -201,17 +302,20 @@ Track Info:
     Current track: {track_helper.get_track_name(track_info.track_id)}
     Current lap: {track_info.lap}
     Track Status: {
-        "Count down" if track_info.track_status is 1 
-        else "Racing/Replay" if track_info.track_status is 2 
+        "Count down" if track_info.track_status == 1 
+        else "Racing/Replay" if track_info.track_status == 2 
         else "Race Finished."}
     Track Progress: {track_info.track_progress}
     Lap Progress: {track_info.lap_progress}
+    Current Waypoint: {track_info.current_waypoint}
 """
 
-    if car_rays_enable:
-        info_text = info_text + "\nDistance info:\n"
-        for ray in car_rays.rays:
-            info_text = info_text + f"  {ray.ray_angle:.2f}: {ray.distance}\n"
+
+
+    # if car_rays_enable:
+    #     info_text = info_text + "\nDistance info:\n"
+    #     for ray in car_rays.rays:
+    #         info_text = info_text + f"  {ray.ray_angle:.2f}: {ray.distance}\n"
     pr.draw_text(info_text, 10, 10, 15, pr.BLACK)
 
     mouse_pos: pr.Vector2 = pr.get_mouse_position()

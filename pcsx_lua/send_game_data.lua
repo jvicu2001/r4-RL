@@ -68,6 +68,23 @@ function sendGameData()
                 car_info["drift_timeout"] = drift_timeout
                 last_drift_timeout = drift_timeout
 
+                ---- Bounding box
+                car_info["bbox_vx1"] = readValue(mem, 0x800ac138, "int32_t*")
+                car_info["bbox_vy1"] = readValue(mem, 0x800ac13c, "int32_t*")
+                car_info["bbox_vz1"] = readValue(mem, 0x800ac140, "int32_t*")
+
+                car_info["bbox_vx2"] = readValue(mem, 0x800ac148, "int32_t*")
+                car_info["bbox_vy2"] = readValue(mem, 0x800ac14c, "int32_t*")
+                car_info["bbox_vz2"] = readValue(mem, 0x800ac150, "int32_t*")
+
+                car_info["bbox_vx3"] = readValue(mem, 0x800ac158, "int32_t*")
+                car_info["bbox_vy3"] = readValue(mem, 0x800ac15c, "int32_t*")
+                car_info["bbox_vz3"] = readValue(mem, 0x800ac160, "int32_t*")
+
+                car_info["bbox_vx4"] = readValue(mem, 0x800ac168, "int32_t*")
+                car_info["bbox_vy4"] = readValue(mem, 0x800ac16c, "int32_t*")
+                car_info["bbox_vz4"] = readValue(mem, 0x800ac170, "int32_t*")
+
                 -- Track Info
                 track_info["track_id"] = readValue(mem, 0x800ac800, "uint8_t*")
                 track_info["track_status"] = readValue(mem, 0x800ff860, "uint8_t*")
@@ -76,6 +93,8 @@ function sendGameData()
                 track_info["track_progress"] = readValue(mem, 0x800f684c, "int32_t*")
 
                 track_info["lap"] = readValue(mem, 0x800ac35a, "uint16_t*")
+
+                track_info["current_waypoint"] = readValue(mem, 0x800ac1a0, "uint16_t*")
 
                 -- Game Info
                 game_info["car_info"] = car_info

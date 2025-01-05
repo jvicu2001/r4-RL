@@ -27,6 +27,20 @@ message GameInfo {
         bool free_fall = 19;
 
         uint32 drift_timeout = 20;
+
+        // Bounding box
+        int32 bbox_vx1 = 21;
+        int32 bbox_vy1 = 22;
+        int32 bbox_vz1 = 23;
+        int32 bbox_vx2 = 24;
+        int32 bbox_vy2 = 25;
+        int32 bbox_vz2 = 26;
+        int32 bbox_vx3 = 27;
+        int32 bbox_vy3 = 28;
+        int32 bbox_vz3 = 29;
+        int32 bbox_vx4 = 30;
+        int32 bbox_vy4 = 31;
+        int32 bbox_vz4 = 32;
     }
     message TrackInfo {
         uint32 track_id = 1;
@@ -36,6 +50,8 @@ message GameInfo {
         int32 track_progress = 4;
 
         uint32 lap = 5;
+
+        uint32 current_waypoint = 6;
     }
     CarInfo car_info = 1;
     TrackInfo track_info = 2;

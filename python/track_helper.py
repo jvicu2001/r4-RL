@@ -1,5 +1,10 @@
 from enum import Enum
 
+import numpy as np
+import pyray as pr
+
+from utils import calculate_angle, calculate_point_displacement
+
 class TrackLenght(Enum):
     HELTER      = 170330
     WONDER      = 217817
@@ -102,7 +107,7 @@ class Track():
         right_roadway_width, left_roadway_width, dist_to_next_waypoint, 
         right_shoulder_width, left_shoulder_width):
             self.x = x
-            self.z = z
+            self.z = -z
             self.y = y
             self.y_tangent = y_tangent
             self.right_roadway_width = right_roadway_width
@@ -111,9 +116,33 @@ class Track():
             self.right_shoulder_width = right_shoulder_width
             self.left_shoulder_width = left_shoulder_width
 
+            self.process()
+
         def __str__(self):
             return f"""x, y, z: {self.x}, {self.y}, {self.z}
 y_tangent: {self.y_tangent}
 left/right roadway width: {self.left_roadway_width}, {self.right_roadway_width}
 left/right shoulder width: {self.left_shoulder_width}, {self.right_shoulder_width}
 distance to next waypoint: {self.dist_to_next_waypoint}"""
+
+        def process(self, scale: float = 1.0):
+            self.angle = calculate_angle((-self.y_tangent + 2048)%4096)
+            self.left_angle = calculate_angle((-self.y_tangent + 1024)%4096)
+            self.right_angle = calculate_angle((-self.y_tangent + 3072)%4096)
+
+            self.left_roadway = pr.Vector2(*calculate_point_displacement(
+                self.x, self.z, self.left_angle, 
+                self.left_roadway_width*scale))
+
+            self.right_roadway = pr.Vector2(*calculate_point_displacement(
+                self.x, self.z, self.right_angle, 
+                self.right_roadway_width*scale))
+
+            self.left_shoulder = pr.Vector2(*calculate_point_displacement(
+                self.x, self.z, self.left_angle, 
+                (self.left_roadway_width + self.left_shoulder_width)*scale))
+                
+            self.right_shoulder = pr.Vector2(*calculate_point_displacement(
+                self.x, self.z, self.right_angle, 
+                (self.right_roadway_width + self.right_shoulder_width)*scale))
+            pass

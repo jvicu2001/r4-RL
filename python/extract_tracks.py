@@ -33,7 +33,7 @@ track_ids = {
 waypoint_struct = "<xxxxxxxxiihhxxxxhhhxxxxxxxxxxxxxxhhxxxxxxxxxxxx"
 waypoint_size = struct.calcsize(waypoint_struct)
 
-def get_tracks() -> list[Track]:
+def get_tracks() -> list[Track] | FileNotFoundError:
     tracks = []
     try:
         r4_bin = open("../extracted/R4.BIN", 'rb')
@@ -57,9 +57,12 @@ def get_tracks() -> list[Track]:
         return tracks
     except FileNotFoundError:
         print("File R4.BIN not found in the /extracted folder.\nExtract the file within PCSX-Redux.")
+        return FileNotFoundError
 
     except Exception as err:
         print(err)
+        return err
+
 
     # for x in tracks:
     #     print(f"{x}\nFirst waypoint: {x.waypoints[0]}")
