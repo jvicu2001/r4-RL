@@ -5,7 +5,7 @@ import pyray as pr
 import numpy as np
 
 import track_helper
-# import collision.collision_check
+import collision.collision_check
 import extract_tracks
 
 from proto import game_pb2
@@ -45,10 +45,10 @@ track_info: game_pb2.GameInfo.TrackInfo = game_info.TrackInfo()
 game_packet_recv_time = time.time()
 
 # Collision "rays"
-# car_rays_maxdistance = 2000
-# car_rays_amount = 5
-# car_rays_enable = False
-# car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, car_rays_amount, np.pi)
+car_rays_maxdistance = 2000
+car_rays_amount = 5
+car_rays_enable = False
+car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, 10, car_rays_amount, np.pi)
 
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
@@ -120,17 +120,16 @@ while not pr.window_should_close():
         track_draw_full = not track_draw_full
 
     ## Toggle Car Rays
-    # if pr.is_key_pressed(pr.KEY_C):
-    #     car_rays_enable = not car_rays_enable
+    if pr.is_key_pressed(pr.KEY_C):
+        car_rays_enable = not car_rays_enable
 
     ## Car Rays
-    # if car_rays_enable:
-    #     car_rays.test_rays(
-    #         lap_progress=track_info.lap_progress, 
-    #         car_angle=calculate_angle(car_info.applied_direction), 
-    #         car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
-    #         track_id=track_info.track_id,
-    #         points=points)
+    if car_rays_enable:
+        car_rays.test_rays(
+            current_waypoint=track_info.current_waypoint, 
+            car_angle=calculate_angle(car_info.applied_direction), 
+            car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
+            track=current_track)
 
     ## Calculate bounding box
     bbox1_x, bbox1_z = calculate_point_displacement(
@@ -309,11 +308,11 @@ while not pr.window_should_close():
         pr.BLUE)
 
     ## Car rays
-    # if car_rays_enable:
-    #     car_rays.draw_rays(
-    #         car_info.x_pos, -car_info.z_pos,
-    #         calculate_angle(car_info.applied_direction),
-    #         pr.VIOLET)
+    if car_rays_enable:    
+        car_rays.draw_rays(    
+            car_info.x_pos, -car_info.z_pos,        
+            calculate_angle(car_info.applied_direction),        
+            pr.VIOLET)
 
     pr.end_mode_2d()
 

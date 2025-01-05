@@ -1,68 +1,59 @@
 import pyray as pr
-import peewee
 import numpy as np
 import time
 
-from harvest_track import TrackData
 import track_helper
 import draw_helper
 
 class CarRays():
     def __init__(self,
         max_distance: int,
+        max_waypoints: int,
         ray_count: int,
         ray_arc: float):
 
         self.rays: list[CarRay] = []
         self.ray_count = ray_count
         self.max_distance = max_distance
+        self.max_waypoints = max_waypoints
         for n in range(ray_count):
             n_angle = ray_arc * (n/(ray_count-1) - 0.5)
             self.rays.append(CarRay(n_angle, max_distance))
         pass
 
 
-    def test_rays(self, lap_progress: int, car_angle: float, car_origin_x: int, car_origin_y: int, track_id: int, points: peewee.ModelSelect):
-        track_distance = track_helper.get_track_lenght(track_id)
+    def test_rays(self, current_waypoint: int, car_angle: float, car_origin_x: int, car_origin_y: int, track: track_helper.Track):
+        waypoint_count = len(track.waypoints)
 
         # Get points up to the max distance backwards and forwards
-        back_position = (lap_progress - self.max_distance) % track_distance
-        front_position = (lap_progress + self.max_distance)% track_distance
-
-        # Check if the points loop around lap_progress
-        max_position = max(back_position, front_position)
-
-        if max_position == back_position:
-            test_points = points.where(
-            TrackData.lap_progress.between(back_position, track_distance) | 
-            TrackData.lap_progress.between(0, front_position)).order_by(
-                TrackData.lap_progress<back_position, TrackData.lap_progress) # Cyclic order
-        
-        else:
-            test_points = points.where(TrackData.lap_progress.between(back_position, front_position))
-
-        # Split points for each wall
-        test_points_l = test_points.where(TrackData.side==0)
-        test_points_r = test_points.where(TrackData.side==1)
+        back_waypoint = (current_waypoint - self.max_waypoints) % waypoint_count
 
         # Test points until a collision is detected per ray
         ray_indexes = [n for n in range(self.ray_count)]
         # iter_count = 0
         # iter_time_s = time.time()
 
-        for tps in [test_points_l, test_points_r]:
-            for point_index in range(1, tps.count()):
-                point_a = pr.Vector2(tps[point_index-1].x_pos, -tps[point_index-1].z_pos)
-                point_b = pr.Vector2(tps[point_index].x_pos, -tps[point_index].z_pos)
-                # Test all ray that haven't collided yet
-                for ray_index in ray_indexes:
-                    if self.rays[ray_index].test_collision(pr.Vector2(car_origin_x, car_origin_y), point_a, point_b, car_angle):
-                        ray_indexes.remove(ray_index)
-                    # iter_count += 1
+        for waypoint_n in range(self.max_waypoints*2 + 1):
+            last_waypoint_index = (back_waypoint + waypoint_n - 1) % waypoint_count
+            waypoint_index = (back_waypoint + waypoint_n) % waypoint_count
+
+            wall_l1 = track.waypoints[last_waypoint_index].left_shoulder
+            wall_l2 = track.waypoints[waypoint_index].left_shoulder
+
+            wall_r1 = track.waypoints[last_waypoint_index].right_shoulder
+            wall_r2 = track.waypoints[waypoint_index].right_shoulder
+
+            # Test all ray that haven't collided yet
+            for ray_index in ray_indexes:
+                if self.rays[ray_index].test_collision(pr.Vector2(car_origin_x, car_origin_y), wall_l1, wall_l2, car_angle):
+                    ray_indexes.remove(ray_index)
+                    continue
+                if self.rays[ray_index].test_collision(pr.Vector2(car_origin_x, car_origin_y), wall_r1, wall_r2, car_angle):
+                    ray_indexes.remove(ray_index)
+                # iter_count += 1
                 
-                # Exit loops if all rays collided
-                if len(ray_indexes) == 0:
-                    break
+            # Exit loops if all rays collided
+
             if len(ray_indexes) == 0:
                     break
         

@@ -27,7 +27,7 @@ In the same folder as the track info extractor, activate the virtual enviroment 
 - Mouse scrool wheel: Zoom in/out.
 - Z: Chase car.
 - X: Rotate camera with car while chasing.
-- C: Toggle distance rays (Currently unavailable)
+- C: Toggle distance rays (Buggy)
 - V: Toggle between polygon track drawing or line/debug drawing mode.
 
 ### Sector-based asset extractor
