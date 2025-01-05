@@ -30,6 +30,7 @@ current_track: track_helper.Track = change_track(0)
 
 # Track drawing mode
 track_draw_full = True
+track_draw_only_visible_waypoints = False
 
 # Game info socket parameters
 UDP_HOST, UDP_PORT = "localhost", 7651
@@ -48,7 +49,8 @@ game_packet_recv_time = time.time()
 car_rays_maxdistance = 2000
 car_rays_amount = 5
 car_rays_enable = False
-car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, 10, car_rays_amount, np.pi)
+car_rays_visible_waypoints = 10
+car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, car_rays_visible_waypoints, car_rays_amount, np.pi)
 
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
@@ -56,6 +58,102 @@ camera.target = pr.Vector2(0, 0)
 camera.offset = pr.Vector2(pr.get_screen_width()/2.0, pr.get_screen_height()/2.0)
 camera_follow_car = False
 camera_follow_car_rotation = False
+
+def draw_track_poly(waypoints: list[track_helper.Track.Waypoint]):
+    for waypoint_n in range((1 if track_draw_only_visible_waypoints else 0), len(waypoints)):
+        waypoint = waypoints[waypoint_n]
+        last_waypoint = waypoints[waypoint_n-1]
+
+        # Draw road
+        pr.draw_triangle(
+            last_waypoint.left_roadway,
+            waypoint.left_roadway,
+            last_waypoint.right_roadway,
+            pr.GRAY
+            )
+        pr.draw_triangle(
+            waypoint.left_roadway,
+            waypoint.right_roadway,
+            last_waypoint.right_roadway,
+            pr.GRAY
+            )
+
+        # Draw shoulders
+        ## Left shoulders
+        pr.draw_triangle(
+            last_waypoint.left_shoulder,
+            waypoint.left_shoulder,
+            last_waypoint.left_roadway,
+            pr.BROWN
+            )
+        pr.draw_triangle(
+            waypoint.left_roadway, 
+            last_waypoint.left_roadway,
+            waypoint.left_shoulder,
+            pr.BROWN
+            )
+
+        ## Right shoulders
+        pr.draw_triangle(
+            last_waypoint.right_roadway,
+            waypoint.right_shoulder,
+            last_waypoint.right_shoulder,
+            pr.BROWN
+            )
+        pr.draw_triangle(
+            waypoint.right_shoulder, 
+            last_waypoint.right_roadway,
+            waypoint.right_roadway,
+            pr.BROWN
+            )
+            
+def draw_track_debug(waypoints: list[track_helper.Track.Waypoint]):
+    for waypoint_n in range((1 if track_draw_only_visible_waypoints else 0), len(waypoints)):
+        waypoint = waypoints[waypoint_n]
+        last_waypoint = waypoints[waypoint_n-1]
+
+        # Draw road
+        pr.draw_line(int(last_waypoint.left_roadway.x), 
+        int(last_waypoint.left_roadway.y), 
+        int(waypoint.left_roadway.x), 
+        int(waypoint.left_roadway.y), pr.BROWN)
+
+        pr.draw_line(int(last_waypoint.right_roadway.x), 
+        int(last_waypoint.right_roadway.y), 
+        int(waypoint.right_roadway.x), 
+        int(waypoint.right_roadway.y), pr.BROWN)
+
+        # Draw shoulders
+        pr.draw_line(int(last_waypoint.left_shoulder.x), 
+        int(last_waypoint.left_shoulder.y), 
+        int(waypoint.left_shoulder.x), 
+        int(waypoint.left_shoulder.y), pr.GRAY)
+
+        pr.draw_line(int(last_waypoint.right_shoulder.x), 
+        int(last_waypoint.right_shoulder.y), 
+        int(waypoint.right_shoulder.x), 
+        int(waypoint.right_shoulder.y), pr.GRAY)
+
+        pr.draw_text(f"{int(waypoint.right_shoulder.x)} {int(waypoint.right_shoulder.y)}",
+        int(waypoint.right_shoulder.x), int(waypoint.right_shoulder.y), 15, pr.BLACK)
+
+        # Connect waypoint sides
+        pr.draw_line(int(waypoint.left_shoulder.x), 
+        int(waypoint.left_shoulder.y), 
+        int(waypoint.right_shoulder.x), 
+        int(waypoint.right_shoulder.y), pr.GREEN)
+
+        pr.draw_line(int(waypoint.left_roadway.x), 
+        int(waypoint.left_roadway.y), 
+        int(waypoint.right_roadway.x), 
+        int(waypoint.right_roadway.y), pr.GREEN)
+
+        pr.draw_circle(int(waypoint.x), int(waypoint.z), 25.0, pr.GREEN)
+
+        # Draw waypoint order and distance to next waypoint
+        pr.draw_text(f"{waypoint_n}         {waypoint.dist_to_next_waypoint}",
+            waypoint.x - 110, waypoint.z + 30, 30, pr.BLACK)
+
 
 pr.set_target_fps(60)
 
@@ -118,6 +216,26 @@ while not pr.window_should_close():
     ## Toggle track drawing mode
     if (pr.is_key_pressed(pr.KEY_V)):
         track_draw_full = not track_draw_full
+    if (pr.is_key_pressed(pr.KEY_B)):
+        track_draw_only_visible_waypoints = not track_draw_only_visible_waypoints
+
+    ## Fetch collision waypoints
+    waypoints: list[track_helper.Track.Waypoint] = []
+    raycast_waypoints: list[track_helper.Track.Waypoint] = []
+
+    back_waypoint = (track_info.current_waypoint - car_rays_visible_waypoints) % len(current_track.waypoints)
+    front_waypoint = (track_info.current_waypoint + car_rays_visible_waypoints) % len(current_track.waypoints)
+    if back_waypoint < front_waypoint:
+        raycast_waypoints = current_track.waypoints[back_waypoint:front_waypoint]
+    else:
+        raycast_waypoints = current_track.waypoints[back_waypoint:] + current_track.waypoints[:front_waypoint]
+
+    ## If track_draw_only_visible_waypoints is enabled, only draw the waypoints visible to the raycast
+    if track_draw_only_visible_waypoints:
+        waypoints = raycast_waypoints
+    else:
+        waypoints = current_track.waypoints
+
 
     ## Toggle Car Rays
     if pr.is_key_pressed(pr.KEY_C):
@@ -126,10 +244,9 @@ while not pr.window_should_close():
     ## Car Rays
     if car_rays_enable:
         car_rays.test_rays(
-            current_waypoint=track_info.current_waypoint, 
             car_angle=calculate_angle(car_info.applied_direction), 
             car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
-            track=current_track)
+            waypoints=raycast_waypoints)
 
     ## Calculate bounding box
     bbox1_x, bbox1_z = calculate_point_displacement(
@@ -159,96 +276,10 @@ while not pr.window_should_close():
     pr.begin_mode_2d(camera)
 
     # Draw track
-    for waypoint_n in range(len(current_track.waypoints)):
-        waypoint = current_track.waypoints[waypoint_n]
-        last_waypoint = current_track.waypoints[waypoint_n-1]
-
-        ## Draw the road as polygons
-        if track_draw_full:
-            # Draw road
-            pr.draw_triangle(
-                last_waypoint.left_roadway,
-                waypoint.left_roadway,
-                last_waypoint.right_roadway,
-                pr.GRAY
-                )
-            pr.draw_triangle(
-                waypoint.left_roadway,
-                waypoint.right_roadway,
-                last_waypoint.right_roadway,
-                pr.GRAY
-                )
-
-            # Draw shoulders
-            ## Left shoulders
-            pr.draw_triangle(
-                last_waypoint.left_shoulder,
-                waypoint.left_shoulder,
-                last_waypoint.left_roadway,
-                pr.BROWN
-                )
-            pr.draw_triangle(
-                waypoint.left_roadway, 
-                last_waypoint.left_roadway,
-                waypoint.left_shoulder,
-                pr.BROWN
-                )
-
-            ## Right shoulders
-            pr.draw_triangle(
-                last_waypoint.right_roadway,
-                waypoint.right_shoulder,
-                last_waypoint.right_shoulder,
-                pr.BROWN
-                )
-            pr.draw_triangle(
-                waypoint.right_shoulder, 
-                last_waypoint.right_roadway,
-                waypoint.right_roadway,
-                pr.BROWN
-                )
-        else:
-            # Draw road
-            pr.draw_line(int(last_waypoint.left_roadway.x), 
-            int(last_waypoint.left_roadway.y), 
-            int(waypoint.left_roadway.x), 
-            int(waypoint.left_roadway.y), pr.BROWN)
-
-            pr.draw_line(int(last_waypoint.right_roadway.x), 
-            int(last_waypoint.right_roadway.y), 
-            int(waypoint.right_roadway.x), 
-            int(waypoint.right_roadway.y), pr.BROWN)
-
-            # Draw shoulders
-            pr.draw_line(int(last_waypoint.left_shoulder.x), 
-            int(last_waypoint.left_shoulder.y), 
-            int(waypoint.left_shoulder.x), 
-            int(waypoint.left_shoulder.y), pr.GRAY)
-
-            pr.draw_line(int(last_waypoint.right_shoulder.x), 
-            int(last_waypoint.right_shoulder.y), 
-            int(waypoint.right_shoulder.x), 
-            int(waypoint.right_shoulder.y), pr.GRAY)
-
-            pr.draw_text(f"{int(waypoint.right_shoulder.x)} {int(waypoint.right_shoulder.y)}",
-            int(waypoint.right_shoulder.x), int(waypoint.right_shoulder.y), 15, pr.BLACK)
-
-            # Connect waypoint sides
-            pr.draw_line(int(waypoint.left_shoulder.x), 
-            int(waypoint.left_shoulder.y), 
-            int(waypoint.right_shoulder.x), 
-            int(waypoint.right_shoulder.y), pr.GREEN)
-
-            pr.draw_line(int(waypoint.left_roadway.x), 
-            int(waypoint.left_roadway.y), 
-            int(waypoint.right_roadway.x), 
-            int(waypoint.right_roadway.y), pr.GREEN)
-
-            pr.draw_circle(int(waypoint.x), int(waypoint.z), 25.0, pr.GREEN)
-
-            # Draw waypoint order and distance to next waypoint
-            pr.draw_text(f"{waypoint_n}         {waypoint.dist_to_next_waypoint}",
-                waypoint.x - 110, waypoint.z + 30, 30, pr.BLACK)
+    if track_draw_full:
+        draw_track_poly(waypoints)
+    else:
+        draw_track_debug(waypoints)
 
     # Draw car Bounding Box
     pr.draw_line(
@@ -348,10 +379,10 @@ Track Info:
 
 
 
-    # if car_rays_enable:
-    #     info_text = info_text + "\nDistance info:\n"
-    #     for ray in car_rays.rays:
-    #         info_text = info_text + f"  {ray.ray_angle:.2f}: {ray.distance}\n"
+    if car_rays_enable:
+        info_text = info_text + "\nDistance info:\n"
+        for ray in car_rays.rays:
+            info_text = info_text + f"  {ray.ray_angle:.2f}: {ray.distance}\n"
     pr.draw_text(info_text, 10, 10, 15, pr.BLACK)
 
     mouse_pos: pr.Vector2 = pr.get_mouse_position()

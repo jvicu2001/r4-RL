@@ -29,6 +29,7 @@ In the same folder as the track info extractor, activate the virtual enviroment 
 - X: Rotate camera with car while chasing.
 - C: Toggle distance rays (Buggy)
 - V: Toggle between polygon track drawing or line/debug drawing mode.
+- B: Toggle drawing only the waypoints visible to the ray colliders
 
 ### Sector-based asset extractor
 On PCSX-Redux, there will be a menu called "Save R4.BIN Files". In the Size in sectors field you have to enter the `sectors` number given by the "CdRead Invoked" print in console, and in the Initial sector field you have to enter the `final_sector` number given by the  first "CdPosToInt Invoked" print after the "CdRead" one. You can enter a custom filename.
