@@ -11,22 +11,23 @@ import extract_tracks
 from proto import game_pb2
 
 import draw_helper
+import game_instance
 
 from utils import calculate_angle, calculate_point_displacement
 
 # Load tracks
-tracks = []
-try:
-    tracks = sorted(extract_tracks.get_tracks(), key=lambda x: x.id)
-except Exception as err:
-    print("Error fetching track info. Have you extracted R4.BIN yet?")
-    exit()
+# tracks = []
+# try:
+#     tracks = sorted(extract_tracks.get_tracks(), key=lambda x: x.id)
+# except Exception as err:
+#     print("Error fetching track info. Have you extracted R4.BIN yet?")
+#     exit()
 
 # Get current track
-def change_track(track_id: int = 0):
-    return tracks[track_id%8]
+# def change_track(track_id: int = 0):
+#     return tracks[track_id%8]
 
-current_track: track_helper.Track = change_track(0)
+# current_track: track_helper.Track = change_track(0)
 
 # Track drawing mode
 track_draw_full = True
@@ -34,23 +35,29 @@ track_draw_only_visible_waypoints = False
 
 # Game info socket parameters
 UDP_HOST, UDP_PORT = "localhost", 7651
-game_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-game_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-game_socket.bind((UDP_HOST, UDP_PORT))
-game_socket.setblocking(False)
+# game_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# game_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+# game_socket.bind((UDP_HOST, UDP_PORT))
+# game_socket.setblocking(False)
 
 # Game packet
-game_info: game_pb2.GameInfo = game_pb2.GameInfo()
-car_info: game_pb2.GameInfo.CarInfo = game_info.CarInfo()
-track_info: game_pb2.GameInfo.TrackInfo = game_info.TrackInfo()
-game_packet_recv_time = time.time()
+# game_info: game_pb2.GameInfo = game_pb2.GameInfo()
+# car_info: game_pb2.GameInfo.CarInfo = game_info.CarInfo()
+# track_info: game_pb2.GameInfo.TrackInfo = game_info.TrackInfo()
+# game_packet_recv_time = time.time()
 
 # Collision "rays"
 car_rays_maxdistance = 3000
 car_rays_amount = 5
 car_rays_enable = False
 car_rays_visible_waypoints = 10
-car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, car_rays_visible_waypoints, car_rays_amount, np.pi)
+# car_rays: collision.collision_check.CarRays = collision.collision_check.CarRays(car_rays_maxdistance, car_rays_visible_waypoints, car_rays_amount, np.pi)
+
+# Instantiate car
+car: game_instance.GameCar = game_instance.GameCar(
+    udp_host=UDP_HOST, udp_port=UDP_PORT, socket_blocking=False,
+    rays_max_distance=car_rays_maxdistance, rays_max_waypoints=car_rays_visible_waypoints, ray_count=car_rays_amount, ray_arc=np.pi, rays_enabled=car_rays_enable
+)
 
 camera = pr.Camera2D(pr.Vector2(0,0))
 camera.zoom = 0.01
@@ -166,20 +173,11 @@ while not pr.window_should_close():
     # Update
 
     ## Car info retrieval via socket
-    try:
-        recv_data, recv_addr = game_socket.recvfrom(1024)
-        game_info.ParseFromString(recv_data)
-        car_info = game_info.car_info
-        track_info = game_info.track_info
-        # print(game_info)
-
-        game_packet_recv_time = time.time()
-    except:
-        pass
+    car.update()
 
     ## Check for map change
-    if track_info.track_id is not current_track.id:
-        current_track = change_track(track_info.track_id)
+    # if track_info.track_id is not current_track.id:
+    #     current_track = change_track(track_info.track_id)
 
     ## Camera mouse movement
     if (pr.is_mouse_button_down(pr.MouseButton.MOUSE_BUTTON_LEFT)):
@@ -200,10 +198,10 @@ while not pr.window_should_close():
     ## Car chase
     if camera_follow_car:
         camera.offset = pr.Vector2(pr.get_screen_width()/2.0, pr.get_screen_height()/2.0)
-        camera.target = pr.Vector2(car_info.x_pos, -car_info.z_pos)
+        camera.target = pr.Vector2(car.car_info.x_pos, -car.car_info.z_pos)
 
         if camera_follow_car_rotation:
-            camera.rotation = -(car_info.applied_direction*360)/4096
+            camera.rotation = -(car.car_info.applied_direction*360)/4096
 
     ## Zoom
     wheel: float = pr.get_mouse_wheel_move()
@@ -220,54 +218,54 @@ while not pr.window_should_close():
         track_draw_only_visible_waypoints = not track_draw_only_visible_waypoints
 
     ## Fetch collision waypoints
-    waypoints: list[track_helper.Track.Waypoint] = []
-    raycast_waypoints: list[track_helper.Track.Waypoint] = []
+    # waypoints: list[track_helper.Track.Waypoint] = []
+    # raycast_waypoints: list[track_helper.Track.Waypoint] = []
 
-    back_waypoint = (track_info.current_waypoint - car_rays_visible_waypoints) % len(current_track.waypoints)
-    front_waypoint = (track_info.current_waypoint + car_rays_visible_waypoints) % len(current_track.waypoints)
-    if back_waypoint < front_waypoint:
-        raycast_waypoints = current_track.waypoints[back_waypoint:front_waypoint]
-    else:
-        raycast_waypoints = current_track.waypoints[back_waypoint:] + current_track.waypoints[:front_waypoint]
+    # back_waypoint = (track_info.current_waypoint - car_rays_visible_waypoints) % len(current_track.waypoints)
+    # front_waypoint = (track_info.current_waypoint + car_rays_visible_waypoints) % len(current_track.waypoints)
+    # if back_waypoint < front_waypoint:
+    #     raycast_waypoints = current_track.waypoints[back_waypoint:front_waypoint]
+    # else:
+    #     raycast_waypoints = current_track.waypoints[back_waypoint:] + current_track.waypoints[:front_waypoint]
 
     ## If track_draw_only_visible_waypoints is enabled, only draw the waypoints visible to the raycast
     if track_draw_only_visible_waypoints:
-        waypoints = raycast_waypoints
+        waypoints = car.active_waypoints
     else:
-        waypoints = current_track.waypoints
+        waypoints = car.current_track.waypoints
 
 
     ## Toggle Car Rays
     if pr.is_key_pressed(pr.KEY_C):
-        car_rays_enable = not car_rays_enable
+        car.car_rays_enabled = not car.car_rays_enabled
 
     ## Car Rays
-    if car_rays_enable:
-        car_rays.test_rays(
-            car_angle=calculate_angle(car_info.applied_direction), 
-            car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
-            waypoints=raycast_waypoints)
+    # if car_rays_enable:
+    #     car_rays.test_rays(
+    #         car_angle=calculate_angle(car_info.applied_direction), 
+    #         car_origin_x=car_info.x_pos, car_origin_y=-car_info.z_pos,
+    #         waypoints=raycast_waypoints)
 
     ## Calculate bounding box
     bbox1_x, bbox1_z = calculate_point_displacement(
-        car_info.x_pos + car_info.bbox_vx1,
-        -(car_info.z_pos + car_info.bbox_vz1),
-        calculate_angle(car_info.applied_direction), -123)
+        car.car_info.x_pos + car.car_info.bbox_vx1,
+        -(car.car_info.z_pos + car.car_info.bbox_vz1),
+        calculate_angle(car.car_info.applied_direction), -123)
     
     bbox2_x, bbox2_z = calculate_point_displacement(
-        car_info.x_pos + car_info.bbox_vx2,
-        -(car_info.z_pos + car_info.bbox_vz2),
-        calculate_angle(car_info.applied_direction), -123)
+        car.car_info.x_pos + car.car_info.bbox_vx2,
+        -(car.car_info.z_pos + car.car_info.bbox_vz2),
+        calculate_angle(car.car_info.applied_direction), -123)
 
     bbox3_x, bbox3_z = calculate_point_displacement(
-        car_info.x_pos + car_info.bbox_vx3,
-        -(car_info.z_pos + car_info.bbox_vz3),
-        calculate_angle(car_info.applied_direction), -123)
+        car.car_info.x_pos + car.car_info.bbox_vx3,
+        -(car.car_info.z_pos + car.car_info.bbox_vz3),
+        calculate_angle(car.car_info.applied_direction), -123)
 
     bbox4_x, bbox4_z = calculate_point_displacement(
-        car_info.x_pos + car_info.bbox_vx4,
-        -(car_info.z_pos + car_info.bbox_vz4),
-        calculate_angle(car_info.applied_direction), -123)
+        car.car_info.x_pos + car.car_info.bbox_vx4,
+        -(car.car_info.z_pos + car.car_info.bbox_vz4),
+        calculate_angle(car.car_info.applied_direction), -123)
 
     # Draw
     pr.begin_drawing()
@@ -326,62 +324,62 @@ while not pr.window_should_close():
 
     ## Car vectors
     draw_helper.draw_arrow(
-        car_info.x_pos, 
-        -car_info.z_pos,
-        calculate_angle(car_info.applied_direction),
+        car.car_info.x_pos, 
+        -car.car_info.z_pos,
+        calculate_angle(car.car_info.applied_direction),
         800,
         pr.RED)
     draw_helper.draw_arrow(
-        car_info.x_pos, 
-        -car_info.z_pos,
-        calculate_angle(car_info.intended_direction),
+        car.car_info.x_pos, 
+        -car.car_info.z_pos,
+        calculate_angle(car.car_info.intended_direction),
         800,
         pr.BLUE)
 
     ## Car rays
-    if car_rays_enable:    
-        car_rays.draw_rays(    
-            car_info.x_pos, -car_info.z_pos,        
-            calculate_angle(car_info.applied_direction),        
+    if car.car_rays_enabled:    
+        car.car_rays.draw_rays(    
+            car.car_info.x_pos, -car.car_info.z_pos,        
+            calculate_angle(car.car_info.applied_direction),        
             pr.VIOLET)
 
     pr.end_mode_2d()
 
 
 
-    info_text = f"""Time since last packet: {(time.time() - game_packet_recv_time):.2f}s
-Packet frequency: {(1/(time.time() - game_packet_recv_time)):.2f}Hz
+    info_text = f"""Time since last packet: {(time.time() - car.time_since_last_packet):.2f}s
+Packet frequency: {(1/(time.time() - car.time_since_last_packet)):.2f}Hz
 FPS: {pr.get_fps()}
 
 Car Info:
-    Coords: X:{car_info.x_pos}, Y:{car_info.y_pos}, Z:{car_info.z_pos}
-    Applied Direction: {car_info.applied_direction}
-    Intended Direction: {car_info.intended_direction}
+    Coords: X:{car.car_info.x_pos}, Y:{car.car_info.y_pos}, Z:{car.car_info.z_pos}
+    Applied Direction: {car.car_info.applied_direction}
+    Intended Direction: {car.car_info.intended_direction}
     
-    Speed: {car_info.speed}
-    RPM: {car_info.rpm}
-    Gear: {car_info.gear}
+    Speed: {car.car_info.speed}
+    RPM: {car.car_info.rpm}
+    Gear: {car.car_info.gear}
     
-    In Air: {"True" if car_info.free_fall else "False"}
-    Drift Timeout: {car_info.drift_timeout}
+    In Air: {"True" if car.car_info.free_fall else "False"}
+    Drift Timeout: {car.car_info.drift_timeout}
     
 Track Info:
-    Current track: {track_helper.get_track_name(track_info.track_id)}
-    Current lap: {track_info.lap}
+    Current track: {track_helper.get_track_name(car.track_info.track_id)}
+    Current lap: {car.track_info.lap}
     Track Status: {
-        "Count down" if track_info.track_status == 1 
-        else "Racing/Replay" if track_info.track_status == 2 
+        "Count down" if car.track_info.track_status == 1 
+        else "Racing/Replay" if car.track_info.track_status == 2 
         else "Race Finished."}
-    Track Progress: {track_info.track_progress}
-    Lap Progress: {track_info.lap_progress}
-    Current Waypoint: {track_info.current_waypoint}
+    Track Progress: {car.track_info.track_progress}
+    Lap Progress: {car.track_info.lap_progress}
+    Current Waypoint: {car.track_info.current_waypoint}
 """
 
 
 
     if car_rays_enable:
         info_text = info_text + "\nDistance info:\n"
-        for ray in car_rays.rays:
+        for ray in car.car_rays.rays:
             info_text = info_text + f"  {ray.ray_angle:.2f}: {ray.distance}\n"
     pr.draw_text(info_text, 10, 10, 15, pr.BLACK)
 
@@ -391,4 +389,4 @@ Track Info:
     pr.end_drawing()
 pr.close_window()
 
-game_socket.close()
+car.game_socket.close()

@@ -5,7 +5,7 @@ import time
 import track_helper
 import draw_helper
 
-from utils import calculate_point_displacement, check_line_intersection
+from utils import calculate_point_displacement, check_line_intersection, cubic_bezier_curve
 
 class CarRays:
     def __init__(self,

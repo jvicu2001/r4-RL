@@ -32,3 +32,11 @@ def check_line_intersection(vec_a: pr.Vector2, vec_b: pr.Vector2, vec_c: pr.Vect
         return True
     
     return False
+
+# Cubic bezier curve
+# Using CSS assumption that p0 is (0,0) and p3 is (1,1)
+# (Experimental) Try to control the rays spread
+def cubic_bezier_curve(p1: pr.Vector2, p2: pr.Vector2, t: float) -> pr.Vector2:
+    x = 3*(1-t)**2 * t * p1.x + 3*(1-t) * t**2 * p2.x + t**3
+    y = 3*(1-t)**2 * t * p1.y + 3*(1-t) * t**2 * p2.y + t**3
+    return pr.Vector2(x, y)
