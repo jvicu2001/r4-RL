@@ -56,3 +56,27 @@ message GameInfo {
     CarInfo car_info = 1;
     TrackInfo track_info = 2;
 }
+
+message ModelOutput {
+    message Action {
+        bool accelerate = 1;
+        bool brake = 2;
+        bool steer_left = 3;
+        bool steer_right = 4;
+    }
+
+    message ModelInfo {
+        uint32 generation = 1;
+        uint32 species = 2;
+        uint32 genome = 3;
+        int32 fitness = 4;
+    }
+
+    message TrainFlags {
+        bool reset = 1;
+    };
+    
+    Action action = 1;
+    ModelInfo model_info = 2;
+    TrainFlags train_flags = 3;
+}

@@ -89,3 +89,40 @@ class GameInfo(_message.Message):
     car_info: GameInfo.CarInfo
     track_info: GameInfo.TrackInfo
     def __init__(self, car_info: _Optional[_Union[GameInfo.CarInfo, _Mapping]] = ..., track_info: _Optional[_Union[GameInfo.TrackInfo, _Mapping]] = ...) -> None: ...
+
+class ModelOutput(_message.Message):
+    __slots__ = ("action", "model_info", "train_flags")
+    class Action(_message.Message):
+        __slots__ = ("accelerate", "brake", "steer_left", "steer_right")
+        ACCELERATE_FIELD_NUMBER: _ClassVar[int]
+        BRAKE_FIELD_NUMBER: _ClassVar[int]
+        STEER_LEFT_FIELD_NUMBER: _ClassVar[int]
+        STEER_RIGHT_FIELD_NUMBER: _ClassVar[int]
+        accelerate: bool
+        brake: bool
+        steer_left: bool
+        steer_right: bool
+        def __init__(self, accelerate: bool = ..., brake: bool = ..., steer_left: bool = ..., steer_right: bool = ...) -> None: ...
+    class ModelInfo(_message.Message):
+        __slots__ = ("generation", "species", "genome", "fitness")
+        GENERATION_FIELD_NUMBER: _ClassVar[int]
+        SPECIES_FIELD_NUMBER: _ClassVar[int]
+        GENOME_FIELD_NUMBER: _ClassVar[int]
+        FITNESS_FIELD_NUMBER: _ClassVar[int]
+        generation: int
+        species: int
+        genome: int
+        fitness: int
+        def __init__(self, generation: _Optional[int] = ..., species: _Optional[int] = ..., genome: _Optional[int] = ..., fitness: _Optional[int] = ...) -> None: ...
+    class TrainFlags(_message.Message):
+        __slots__ = ("reset",)
+        RESET_FIELD_NUMBER: _ClassVar[int]
+        reset: bool
+        def __init__(self, reset: bool = ...) -> None: ...
+    ACTION_FIELD_NUMBER: _ClassVar[int]
+    MODEL_INFO_FIELD_NUMBER: _ClassVar[int]
+    TRAIN_FLAGS_FIELD_NUMBER: _ClassVar[int]
+    action: ModelOutput.Action
+    model_info: ModelOutput.ModelInfo
+    train_flags: ModelOutput.TrainFlags
+    def __init__(self, action: _Optional[_Union[ModelOutput.Action, _Mapping]] = ..., model_info: _Optional[_Union[ModelOutput.ModelInfo, _Mapping]] = ..., train_flags: _Optional[_Union[ModelOutput.TrainFlags, _Mapping]] = ...) -> None: ...
