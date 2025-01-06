@@ -2,12 +2,13 @@ pprint("R4 Info script loaded sucessfully")
 PCSX.pauseEmulator()
 
 loadfile("pcsx_lua/memory.lua")()
-loadfile("pcsx_lua/map_capture.lua")()
+loadfile("pcsx_lua/send_game_data.lua")()
 
 local function reload()
   PCSX.pauseEmulator()
   loadfile("pcsx_lua/r4.lua")()
 end
+
 
 
 
@@ -18,7 +19,7 @@ function carInfo()
     doSliderInt(mem, 0x800ac100, "Car Pitch", -100, 100, "int16_t*")            -- Car pitch, Forward/Backward inclination
     doSliderInt(mem, 0x800ac104, "Car Applied Direction", 0, 4096, "uint16_t*") -- Car's applied forward angle. Smoothly interpolates to 0x800ac340 when manually changed
     doSliderInt(mem, 0x800ac340, "Car Intended Direction", 0, 4096, "uint16_t*")-- Car's real forward angle where the car wants to go. Snaps to appplied direction after drift
-
+    -- Actual Car trayectory is a product between these 2 angles
 
     doSliderInt(mem, 0x800ac32a, "Current Gear", 0, 6, "uint16_t*")         -- Car's current engaged gear
     -- doSliderShort(mem, 0x800ac28d, "Current Gear", 0, 6)                 -- Clones 0x800ac23a
@@ -122,7 +123,7 @@ function trackInfo()
   end
 end
 
-function DrawImguiFrame()
+function MainDrawFrame()
   local show = imgui.Begin("R4", true)
   if not show then imgui.End() return end
 
@@ -157,12 +158,19 @@ function DrawImguiFrame()
   imgui.EndTable()
 
   -- Track capture table
-  imgui.BeginTable("Track capture", 1, imgui.constant.TableFlags.Resizable)
+  imgui.BeginTable("Data capture", 2, imgui.constant.TableFlags.Resizable)
   imgui.TableNextRow()
   imgui.TableSetColumnIndex(0)
-  mapCapture()
+  sendGameData()
   imgui.EndTable()
+
+  R4LoggingToggle()
   imgui.End()
+end
+
+function DrawImguiFrame()
+  MainDrawFrame()
+  SaveDataFrame()
 end
 
 PCSX.resumeEmulator()
