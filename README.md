@@ -20,7 +20,11 @@ After extracting the `R4.BIN` file, just run this script with `python extract_tr
 ### Map viewer
 In the same folder as the track info extractor, activate the virtual enviroment and run the `map_viewer.py` program.
 
-![](screenshots/map_viewer.png)
+| Normal view | Debug view | 
+ :------: | :-------: 
+| ![](screenshots/map_viewer_base.png) | ![](screenshots/map_viewer_debug.png) |
+
+
 
 #### Controls
 - Mouse left click: Draw view.
