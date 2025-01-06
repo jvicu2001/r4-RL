@@ -62,7 +62,7 @@ function sendGameData()
                 car_info["free_fall"] = (readValue(mem, 0x800ac269, "uint8_t*")==1)
 
                 local drift_timeout = readValue(mem, 0x800ac2fc, "int32_t*")
-                if drift_timeout < 0 or drift_timeout == last_drift_timeout then
+                if readValue(mem, 0x800ac348, "uint8_t*") ~= 2 then
                     drift_timeout = 0
                 end
                 car_info["drift_timeout"] = drift_timeout
