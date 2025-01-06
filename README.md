@@ -58,4 +58,4 @@ The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in
     - [ ] Draw the model's output to PCSX-Redux screen using NanoVG
 
 # Credits
-- Whitehole (@whiteh0le) for providing the tracks' waypoint offsets and struct, as well as the cars' bounding box, enabling to use accurate track data for the simulation.
+- Whitehole [@whiteh0le](https://github.com/whiteh0le) for providing the tracks' waypoint offsets and struct, as well as the cars' bounding box, enabling to use accurate track data for the simulation.
