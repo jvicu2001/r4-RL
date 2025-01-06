@@ -5,7 +5,7 @@ import time
 import track_helper
 import draw_helper
 
-from utils import calculate_point_displacement
+from utils import calculate_point_displacement, check_line_intersection
 
 class CarRays:
     def __init__(self,
@@ -56,42 +56,42 @@ class CarRays:
                 collision = pr.Vector2()
 
                 # Check left wall
-                if pr.check_collision_lines(ray_origin, ray_end, wall_l1, wall_l2, collision):
+                if check_line_intersection(ray_origin, ray_end, wall_l1, wall_l2, collision):
                     new_distance = int(pr.vector2_distance(ray_origin, collision))
                     if new_distance < ray.distance:
                         ray.distance = new_distance
                     continue
 
                 # Check right wall
-                if pr.check_collision_lines(ray_origin, ray_end, wall_r1, wall_r2, collision):
+                if check_line_intersection(ray_origin, ray_end, wall_r1, wall_r2, collision):
                     new_distance = int(pr.vector2_distance(ray_origin, collision))
                     if new_distance < ray.distance:
                         ray.distance = new_distance
                     continue
 
-                # Check left wall vertices
-                if pr.check_collision_point_line(wall_l1, ray_origin, ray_end, 10):
-                    new_distance = int(pr.vector2_distance(ray_origin, wall_l1))
-                    if new_distance < ray.distance:
-                        ray.distance = new_distance
-                    continue
-                if pr.check_collision_point_line(wall_l2, ray_origin, ray_end, 10):
-                    new_distance = int(pr.vector2_distance(ray_origin, wall_l2))
-                    if new_distance < ray.distance:
-                        ray.distance = new_distance
-                    continue
+                # # Check left wall vertices
+                # if pr.check_collision_point_line(wall_l1, ray_origin, ray_end, 10):
+                #     new_distance = int(pr.vector2_distance(ray_origin, wall_l1))
+                #     if new_distance < ray.distance:
+                #         ray.distance = new_distance
+                #     continue
+                # if pr.check_collision_point_line(wall_l2, ray_origin, ray_end, 10):
+                #     new_distance = int(pr.vector2_distance(ray_origin, wall_l2))
+                #     if new_distance < ray.distance:
+                #         ray.distance = new_distance
+                #     continue
 
-                # Check right wall vertices
-                if pr.check_collision_point_line(wall_r1, ray_origin, ray_end, 10):
-                    new_distance = int(pr.vector2_distance(ray_origin, wall_r1))
-                    if new_distance < ray.distance:
-                        ray.distance = new_distance
-                    continue
-                if pr.check_collision_point_line(wall_r2, ray_origin, ray_end, 10):
-                    new_distance = int(pr.vector2_distance(ray_origin, wall_r2))
-                    if new_distance < ray.distance:
-                        ray.distance = new_distance
-                    continue
+                # # Check right wall vertices
+                # if pr.check_collision_point_line(wall_r1, ray_origin, ray_end, 10):
+                #     new_distance = int(pr.vector2_distance(ray_origin, wall_r1))
+                #     if new_distance < ray.distance:
+                #         ray.distance = new_distance
+                #     continue
+                # if pr.check_collision_point_line(wall_r2, ray_origin, ray_end, 10):
+                #     new_distance = int(pr.vector2_distance(ray_origin, wall_r2))
+                #     if new_distance < ray.distance:
+                #         ray.distance = new_distance
+                #     continue
         
         # print(f"Total test collision loops: {iter_count} {(time.time() - iter_time_s)/1000 :.5f}ms")
 

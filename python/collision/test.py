@@ -1,17 +1,6 @@
-import numpy as np
 import pyray as pr
 
-# Angle converter
-def calculate_angle(raw_angle: int) -> float:
-    return (raw_angle*2*np.pi)/4096
-
-# Calculate point displacement from origin, angle and distance
-def calculate_point_displacement(origin_x: int, origin_y: int, angle: float, lenght: int):
-    end_x, end_y = origin_x + int(np.sin(angle)*lenght), origin_y - int(np.cos(angle)*lenght)
-    return (end_x, end_y)
-
-# Check if two lines intersect and if so, save the collision point
-# In replacement of pyray.check_collision_lines that is not working properly
+collision = pr.Vector2()
 def check_line_intersection(vec_a: pr.Vector2, vec_b: pr.Vector2, vec_c: pr.Vector2, vec_d: pr.Vector2, collision: pr.Vector2):
     s1_x = vec_b.x - vec_a.x
     s1_y = vec_b.y - vec_a.y
@@ -32,3 +21,15 @@ def check_line_intersection(vec_a: pr.Vector2, vec_b: pr.Vector2, vec_c: pr.Vect
         return True
     
     return False
+
+# Set test vectors
+r1 = pr.Vector2(30470, -41061)
+r2 = pr.Vector2(30117, -41060)
+
+ray_origin = pr.Vector2(30108, -41398)
+ray_end = pr.Vector2(31473, -39937)
+
+# Test collision
+
+print(pr.check_collision_lines(ray_origin, ray_end, r1, r2, collision))
+print(check_line_intersection(ray_origin, ray_end, r1, r2, collision))

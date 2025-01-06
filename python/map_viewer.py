@@ -46,7 +46,7 @@ track_info: game_pb2.GameInfo.TrackInfo = game_info.TrackInfo()
 game_packet_recv_time = time.time()
 
 # Collision "rays"
-car_rays_maxdistance = 2000
+car_rays_maxdistance = 3000
 car_rays_amount = 5
 car_rays_enable = False
 car_rays_visible_waypoints = 10
