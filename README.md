@@ -42,6 +42,12 @@ The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in
 
 ![](screenshots/save_assets_values.png)
 
+### NEAT controller
+First, start the NEAT-python program by running `python r4_neat.py` in the `python` folder.
+
+While the python program waits for the emulator, start PCSX-Redux, load the game as normal and after the OpenBIOS screen turns green, press the `Connect to training module` checkbox on the `Training` window. This will load the preconfigured savestate and start the training session.
+
+__NEEDS WORK__, specially the fitness score. As it is right now, it gets stuck banging on the first wall it finds and doesn't get out of that local maximum. Hyperparameters in the `neat_config.ini` file need adjusting too. Also, it can't restore the training sessions saved yet.
 
 ## TODO List
 - Data collection
@@ -52,10 +58,12 @@ The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in
 - Wall distance detector
     - [X] Build a simulated enviroment to cast rays to the track walls previously collected.
 - AI Agent
-    - [ ] Choose model (Probably NEAT)
-    - [ ] Connect the model to PCSX-Redux
+    - [x] Choose model (Probably NEAT)
+    - [X] Connect the model to PCSX-Redux
+        - [ ] FIX sometimes the game gets stuck when the savestate is restored.
     - [ ] Train and adjust hyperparameters
     - [ ] Draw the model's output to PCSX-Redux screen using NanoVG
+        - [x] Provisional drawing with imgui window
 
 # Credits
 - Whitehole [@whiteh0le](https://github.com/whiteh0le) for providing the tracks' waypoint offsets and struct, as well as the cars' bounding box, enabling to use accurate track data for the simulation.

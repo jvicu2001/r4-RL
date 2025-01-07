@@ -63,6 +63,8 @@ message ModelOutput {
         bool brake = 2;
         bool steer_left = 3;
         bool steer_right = 4;
+        // bool shift_up = 5;
+        // bool shift_down = 6;
     }
 
     message ModelInfo {
@@ -70,6 +72,7 @@ message ModelOutput {
         uint32 species = 2;
         uint32 genome = 3;
         int32 fitness = 4;
+        uint32 step = 5;
     }
 
     message TrainFlags {

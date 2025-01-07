@@ -22,6 +22,8 @@ class GameCar:
 
         self.active_waypoints: list[Track.Waypoint] = []
 
+        self.game_socket_address = udp_host
+        self.game_socket_port = udp_port
         self.configure_socket(udp_host, udp_port, socket_blocking)
         self.time_since_last_packet = time.time()
 
@@ -66,7 +68,7 @@ class GameCar:
 
     def receive_data(self):
         try:
-            data, addr = self.game_socket.recvfrom(1024)
+            data = self.game_socket.recv(2048)
             self.game_info.ParseFromString(data)
             self.track_info = self.game_info.track_info
             self.car_info = self.game_info.car_info

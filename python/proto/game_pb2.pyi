@@ -104,16 +104,18 @@ class ModelOutput(_message.Message):
         steer_right: bool
         def __init__(self, accelerate: bool = ..., brake: bool = ..., steer_left: bool = ..., steer_right: bool = ...) -> None: ...
     class ModelInfo(_message.Message):
-        __slots__ = ("generation", "species", "genome", "fitness")
+        __slots__ = ("generation", "species", "genome", "fitness", "step")
         GENERATION_FIELD_NUMBER: _ClassVar[int]
         SPECIES_FIELD_NUMBER: _ClassVar[int]
         GENOME_FIELD_NUMBER: _ClassVar[int]
         FITNESS_FIELD_NUMBER: _ClassVar[int]
+        STEP_FIELD_NUMBER: _ClassVar[int]
         generation: int
         species: int
         genome: int
         fitness: int
-        def __init__(self, generation: _Optional[int] = ..., species: _Optional[int] = ..., genome: _Optional[int] = ..., fitness: _Optional[int] = ...) -> None: ...
+        step: int
+        def __init__(self, generation: _Optional[int] = ..., species: _Optional[int] = ..., genome: _Optional[int] = ..., fitness: _Optional[int] = ..., step: _Optional[int] = ...) -> None: ...
     class TrainFlags(_message.Message):
         __slots__ = ("reset",)
         RESET_FIELD_NUMBER: _ClassVar[int]

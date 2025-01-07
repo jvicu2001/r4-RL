@@ -3,6 +3,7 @@ PCSX.pauseEmulator()
 
 loadfile("pcsx_lua/memory.lua")()
 loadfile("pcsx_lua/send_game_data.lua")()
+loadfile("pcsx_lua/save_states.lua")()
 
 local function reload()
   PCSX.pauseEmulator()
@@ -171,6 +172,8 @@ end
 function DrawImguiFrame()
   MainDrawFrame()
   SaveDataFrame()
+  SaveStateDialog()
+  SendGameDataTraining()
 end
 
 PCSX.resumeEmulator()
