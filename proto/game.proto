@@ -52,6 +52,8 @@ message GameInfo {
         uint32 lap = 5;
 
         uint32 current_waypoint = 6;
+
+        int32 center_distance = 7;
     }
     CarInfo car_info = 1;
     TrackInfo track_info = 2;
@@ -60,9 +62,9 @@ message GameInfo {
 message ModelOutput {
     message Action {
         bool accelerate = 1;
-        bool brake = 2;
-        bool steer_left = 3;
-        bool steer_right = 4;
+        // bool brake = 2;
+        bool steer_left = 2;
+        bool steer_right = 3;
         // bool shift_up = 5;
         // bool shift_down = 6;
     }
@@ -77,6 +79,7 @@ message ModelOutput {
 
     message TrainFlags {
         bool reset = 1;
+        bool change_savestate = 2;
     };
     
     Action action = 1;

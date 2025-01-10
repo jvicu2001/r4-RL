@@ -70,20 +70,22 @@ class GameInfo(_message.Message):
         bbox_vz4: int
         def __init__(self, x_pos: _Optional[int] = ..., y_pos: _Optional[int] = ..., z_pos: _Optional[int] = ..., applied_direction: _Optional[int] = ..., intended_direction: _Optional[int] = ..., speed: _Optional[int] = ..., rpm: _Optional[int] = ..., gear: _Optional[int] = ..., gear_timeout: _Optional[int] = ..., accel_lifted_timer: _Optional[int] = ..., collided: bool = ..., traction_loss_fl: bool = ..., traction_loss_fr: bool = ..., traction_loss_rl: bool = ..., traction_loss_rr: bool = ..., wrong_way: bool = ..., free_fall: bool = ..., drift_timeout: _Optional[int] = ..., bbox_vx1: _Optional[int] = ..., bbox_vy1: _Optional[int] = ..., bbox_vz1: _Optional[int] = ..., bbox_vx2: _Optional[int] = ..., bbox_vy2: _Optional[int] = ..., bbox_vz2: _Optional[int] = ..., bbox_vx3: _Optional[int] = ..., bbox_vy3: _Optional[int] = ..., bbox_vz3: _Optional[int] = ..., bbox_vx4: _Optional[int] = ..., bbox_vy4: _Optional[int] = ..., bbox_vz4: _Optional[int] = ...) -> None: ...
     class TrackInfo(_message.Message):
-        __slots__ = ("track_id", "track_status", "lap_progress", "track_progress", "lap", "current_waypoint")
+        __slots__ = ("track_id", "track_status", "lap_progress", "track_progress", "lap", "current_waypoint", "center_distance")
         TRACK_ID_FIELD_NUMBER: _ClassVar[int]
         TRACK_STATUS_FIELD_NUMBER: _ClassVar[int]
         LAP_PROGRESS_FIELD_NUMBER: _ClassVar[int]
         TRACK_PROGRESS_FIELD_NUMBER: _ClassVar[int]
         LAP_FIELD_NUMBER: _ClassVar[int]
         CURRENT_WAYPOINT_FIELD_NUMBER: _ClassVar[int]
+        CENTER_DISTANCE_FIELD_NUMBER: _ClassVar[int]
         track_id: int
         track_status: int
         lap_progress: int
         track_progress: int
         lap: int
         current_waypoint: int
-        def __init__(self, track_id: _Optional[int] = ..., track_status: _Optional[int] = ..., lap_progress: _Optional[int] = ..., track_progress: _Optional[int] = ..., lap: _Optional[int] = ..., current_waypoint: _Optional[int] = ...) -> None: ...
+        center_distance: int
+        def __init__(self, track_id: _Optional[int] = ..., track_status: _Optional[int] = ..., lap_progress: _Optional[int] = ..., track_progress: _Optional[int] = ..., lap: _Optional[int] = ..., current_waypoint: _Optional[int] = ..., center_distance: _Optional[int] = ...) -> None: ...
     CAR_INFO_FIELD_NUMBER: _ClassVar[int]
     TRACK_INFO_FIELD_NUMBER: _ClassVar[int]
     car_info: GameInfo.CarInfo
@@ -93,16 +95,14 @@ class GameInfo(_message.Message):
 class ModelOutput(_message.Message):
     __slots__ = ("action", "model_info", "train_flags")
     class Action(_message.Message):
-        __slots__ = ("accelerate", "brake", "steer_left", "steer_right")
+        __slots__ = ("accelerate", "steer_left", "steer_right")
         ACCELERATE_FIELD_NUMBER: _ClassVar[int]
-        BRAKE_FIELD_NUMBER: _ClassVar[int]
         STEER_LEFT_FIELD_NUMBER: _ClassVar[int]
         STEER_RIGHT_FIELD_NUMBER: _ClassVar[int]
         accelerate: bool
-        brake: bool
         steer_left: bool
         steer_right: bool
-        def __init__(self, accelerate: bool = ..., brake: bool = ..., steer_left: bool = ..., steer_right: bool = ...) -> None: ...
+        def __init__(self, accelerate: bool = ..., steer_left: bool = ..., steer_right: bool = ...) -> None: ...
     class ModelInfo(_message.Message):
         __slots__ = ("generation", "species", "genome", "fitness", "step")
         GENERATION_FIELD_NUMBER: _ClassVar[int]
@@ -117,10 +117,12 @@ class ModelOutput(_message.Message):
         step: int
         def __init__(self, generation: _Optional[int] = ..., species: _Optional[int] = ..., genome: _Optional[int] = ..., fitness: _Optional[int] = ..., step: _Optional[int] = ...) -> None: ...
     class TrainFlags(_message.Message):
-        __slots__ = ("reset",)
+        __slots__ = ("reset", "change_savestate")
         RESET_FIELD_NUMBER: _ClassVar[int]
+        CHANGE_SAVESTATE_FIELD_NUMBER: _ClassVar[int]
         reset: bool
-        def __init__(self, reset: bool = ...) -> None: ...
+        change_savestate: bool
+        def __init__(self, reset: bool = ..., change_savestate: bool = ...) -> None: ...
     ACTION_FIELD_NUMBER: _ClassVar[int]
     MODEL_INFO_FIELD_NUMBER: _ClassVar[int]
     TRAIN_FLAGS_FIELD_NUMBER: _ClassVar[int]

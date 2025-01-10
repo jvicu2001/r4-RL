@@ -7,13 +7,24 @@ mem = PCSX.getMemPtr()
 
 TrainingPortSend = 7652
 TrainingPortReceive = 7653
-SaveStateName = "HS_DNightmare_AT_0.slice"
 
-function LoadSaveState(path, name)
-    local file = Support.File.open(path..name, "READ")
-    PCSX.loadSaveState(file)
-    file:close()
+SaveStates = {}
+CurrentSaveStateIndex = 1
+
+for name in lfs.dir("./savestates") do
+    if name ~= "." and name ~= ".." then
+        table.insert(SaveStates, name)
+    end
 end
+
+local function selectNewSaveState()
+    local SaveStatePoolSize = table.getn(SaveStates)
+
+    -- Choose a random save state
+    CurrentSaveStateIndex = math.random(1, SaveStatePoolSize)
+end
+
+selectNewSaveState()
 
 -- Load proto message
 local p = protoc.new()
@@ -97,6 +108,8 @@ local function sendGameState()
 
     track_info["current_waypoint"] = readValue(mem, 0x800ac1a0, "uint16_t*")
 
+    track_info["center_distance"] = readValue(mem, 0x800ac222, "int16_t*")
+
     -- Game Info
     game_info["car_info"] = car_info
     game_info["track_info"] = track_info
@@ -127,7 +140,10 @@ function gameModelResponseCallback(err, data, addr)
 
         -- Reset session on genome change
         if modelResponse['train_flags']['reset'] then
-            local file = Support.File.open("savestates/"..SaveStateName, "READ")
+            if modelResponse['train_flags']['change_savestate'] then
+                selectNewSaveState()
+            end
+            local file = Support.File.open("savestates/"..SaveStates[CurrentSaveStateIndex], "READ")
             PCSX.loadSaveState(file)
             file:close()
             PCSX.resumeEmulator()
@@ -143,11 +159,11 @@ function gameModelResponseCallback(err, data, addr)
             PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.CROSS)
         end
 
-        if actions["brake"] then
-            PCSX.SIO0.slots[1].pads[1].setOverride(PCSX.CONSTS.PAD.BUTTON.SQUARE)
-        else
-            PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.SQUARE)
-        end
+        -- if actions["brake"] then
+        --     PCSX.SIO0.slots[1].pads[1].setOverride(PCSX.CONSTS.PAD.BUTTON.SQUARE)
+        -- else
+        --     PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.SQUARE)
+        -- end
 
         if actions["steer_left"] then
             PCSX.SIO0.slots[1].pads[1].setOverride(PCSX.CONSTS.PAD.BUTTON.LEFT)
@@ -186,6 +202,8 @@ function gameModelResponseCallback(err, data, addr)
     end
 end
 
+local timeSinceLastSend = 0
+
 function SendGameDataTraining()
     local show = imgui.Begin("Training", true)
     toggledCaptureTrain, activeCaptureTrain = imgui.Checkbox("Connect to training module", activeCaptureTrain)
@@ -195,13 +213,14 @@ function SendGameDataTraining()
     imgui.TextUnformatted("Genome: "..train_genome)
     imgui.TextUnformatted("Fitness: "..train_fitness)
     imgui.TextUnformatted("Step: "..train_step)
+    imgui.TextUnformatted("Save state: "..SaveStates[CurrentSaveStateIndex])
 
     imgui.Separator()
 
     imgui.TextUnformatted("Model output")
     imgui.BeginDisabled()
     imgui.RadioButton("Accelerate", current_actions["accelerate"])
-    imgui.RadioButton("Brake", current_actions["brake"])
+    -- imgui.RadioButton("Brake", current_actions["brake"])
     imgui.RadioButton("Steer left", current_actions["steer_left"])
     imgui.RadioButton("Steer right", current_actions["steer_right"])
     -- imgui.RadioButton("Shift up", current_actions["shift_up"])
@@ -233,11 +252,23 @@ function SendGameDataTraining()
         curr_frame = readValue(mem, 0x800ac064, "uint32_t*")
         if last_frame ~= curr_frame then    -- Enables us to send 30 packets per second
             last_frame=curr_frame
+            timeSinceLastSend = 0
             pprint("Sending game state" .. curr_frame)
             sendGameState()
             waiting_for_response = true
             luv.udp_recv_start(udp_train_client, gameModelResponseCallback)
+        else
+            timeSinceLastSend = timeSinceLastSend + 1
+
+            -- If the game hasn't sent any data in 120 loops, reload savestate
+            if timeSinceLastSend > 120 then
+                local file = Support.File.open("savestates/"..SaveStates[CurrentSaveStateIndex], "READ")
+                PCSX.loadSaveState(file)
+                file:close()
+                PCSX.resumeEmulator()
+            end
         end
+        pprint("Time since last send: "..timeSinceLastSend)
     end
     imgui.End()
 end

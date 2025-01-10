@@ -12,8 +12,11 @@ pi: float = 3.1415926535897932384626433
 
 game_car: GameCar = None
 
+n_generation_savestate_change = 8
+
 
 def eval_genomes(genomes, config):
+    change_state = pop.generation % n_generation_savestate_change == 0
     for genome_id, genome in genomes:
         step = 0
 
@@ -26,6 +29,9 @@ def eval_genomes(genomes, config):
         ## Send packet with Train_flags.reset = True
         reset_packet = game_pb2.ModelOutput()
         reset_packet.train_flags.reset = 1
+        if change_state:
+            reset_packet.train_flags.change_savestate = 1
+            change_state = False
         game_car.game_socket.sendto(reset_packet.SerializeToString(), (game_car.game_socket_address, game_car.game_socket_port+1))
 
         last_track_progress = 0
@@ -48,7 +54,6 @@ def eval_genomes(genomes, config):
 
             # Check if the game is over
             if game_car.track_info.track_status == 4:
-                genome.fitness += 10000.0
                 break
 
             # Fail on wall collision
@@ -72,8 +77,13 @@ def eval_genomes(genomes, config):
             rpm = game_car.car_info.rpm / 10000.0
             gear = game_car.car_info.gear / 6.0
 
-            gear_timeout = game_car.car_info.gear_timeout / 9.0
+            # gear_timeout = game_car.car_info.gear_timeout / 9.0
             accel_lifted_timer = game_car.car_info.accel_lifted_timer / 60.0
+
+            traction_loss = game_car.car_info.traction_loss_fl \
+                or game_car.car_info.traction_loss_fr \
+                or game_car.car_info.traction_loss_rl \
+                or game_car.car_info.traction_loss_rr
 
             drift_timeout = game_car.car_info.drift_timeout / 100000.0
 
@@ -81,20 +91,20 @@ def eval_genomes(genomes, config):
             for ray in game_car.car_rays.rays:
                 rays_distance.append(ray.distance / 3000.0)
 
+            # center_distance = game_car.track_info.center_distance / 1000.0
+
             # Feed the neural network
             output = net.activate((
                 speed, 
                 rpm, 
                 gear, 
-                gear_timeout, 
+                # gear_timeout, 
                 accel_lifted_timer,
-                game_car.car_info.traction_loss_fl,
-                game_car.car_info.traction_loss_fr,
-                game_car.car_info.traction_loss_rl,
-                game_car.car_info.traction_loss_rr,
+                traction_loss,
                 game_car.car_info.wrong_way,
                 game_car.car_info.free_fall,
                 drift_timeout, 
+                # center_distance,
                 *rays_distance))
             
             # Send the output to the game
@@ -102,18 +112,18 @@ def eval_genomes(genomes, config):
             packet.action.accelerate = 1 if output[0] > 0.5 else 0
 
             # Adjust brake threshold depending if the car will accelerate
-            if packet.action.accelerate:
-                if output[1] > 0.8:
-                    packet.action.brake = 1
-            else:
-                packet.action.brake = 1 if output[1] > 0.5 else 0
+            # if packet.action.accelerate:
+            #     if output[1] > 0.8:
+            #         packet.action.brake = 1
+            # else:
+            #     packet.action.brake = 1 if output[1] > 0.5 else 0
 
-            if output[2] > output[3]:
-                if output[2] > 0.5:
+            if output[1] > output[2]:
+                if output[1] > 0.5:
                     packet.action.steer_left = 1
                 packet.action.steer_right = 0
             else:
-                if output[3] > 0.5:
+                if output[2] > 0.5:
                     packet.action.steer_right = 1
                 packet.action.steer_left = 0
             

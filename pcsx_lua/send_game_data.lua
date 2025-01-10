@@ -96,6 +96,8 @@ function sendGameData()
 
                 track_info["current_waypoint"] = readValue(mem, 0x800ac1a0, "uint16_t*")
 
+                track_info["center_distance"] = readValue(mem, 0x800ac222, "int16_t*")
+
                 -- Game Info
                 game_info["car_info"] = car_info
                 game_info["track_info"] = track_info
