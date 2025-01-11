@@ -11,11 +11,15 @@ TrainingPortReceive = 7653
 SaveStates = {}
 CurrentSaveStateIndex = 1
 
-for name in lfs.dir("./savestates") do
-    if name ~= "." and name ~= ".." then
-        table.insert(SaveStates, name)
+function FetchSavestates()
+    for name in lfs.dir("./savestates") do
+        if name ~= "." and name ~= ".." then
+            table.insert(SaveStates, name)
+        end
     end
 end
+
+FetchSavestates()
 
 local function selectNewSaveState()
     local SaveStatePoolSize = table.getn(SaveStates)
@@ -213,7 +217,11 @@ function SendGameDataTraining()
     imgui.TextUnformatted("Genome: "..train_genome)
     imgui.TextUnformatted("Fitness: "..train_fitness)
     imgui.TextUnformatted("Step: "..train_step)
-    imgui.TextUnformatted("Save state: "..SaveStates[CurrentSaveStateIndex])
+    if table.getn(SaveStates) > 0 then
+        imgui.TextUnformatted("Save state: "..SaveStates[CurrentSaveStateIndex])
+    else
+        imgui.TextUnformatted("There are no savestates available.")
+    end
 
     imgui.Separator()
 
