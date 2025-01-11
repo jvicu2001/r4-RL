@@ -168,6 +168,7 @@ pop.add_reporter(neat.Checkpointer(10, 60*30))
 
 # Wait until we receive a ready packet from the emulator
 socket_ready = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+socket_ready.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 socket_ready.bind(('localhost', 7650))
 socket_ready.setblocking(True)
 print("Waiting for ready packet from emulator")
