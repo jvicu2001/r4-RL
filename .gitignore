@@ -8,3 +8,4 @@ neat-checkpoint-*
 savestates/*
 
 .vscode
+.sentry-native
