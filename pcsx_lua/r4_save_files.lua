@@ -61,5 +61,9 @@ function SaveDataFrame()
     imgui.End()
 end
 
+if not (lfs.attributes("./extracted", "mode") == "directory") then
+    lfs.mkdir("extracted")
+end
+
 PCSX.resumeEmulator()
 pprint("SaveData module loaded")
