@@ -6,24 +6,23 @@ To make an AI agent that can navigate, drive fast and potentially discover strat
 
 ## How to run
 ### Prerequisites
-`raylib` must be installed in the system beforehand.
+`raylib` and `python` must be installed in the system beforehand. Python 3.11 is recommended but newer versions should work.
 A copy of PCSX-Redux is needed.
 A copy of Ridge Racer Type 4 NTSC-U compatible with PCSX-Redux is required (not provided)
 
-### Memory observers and file extractor (in PCSX-Redux)
-The project expects that the PCSX-Redux executable is located and launched from the project's root directory.
+Enter the absolute paths of the PCSX-Redux emulator and the copy of Ridge Racer Type 4 on the `pcsx_path.txt` and `game_path.txt` files respectively.
+These are used by the scripts on the root folder to launch the emulator correctly.
 
+### Memory observers and file extractor (in PCSX-Redux)
 When opening PCSX-Redux, the pcsx.lua file on the root directory should load automatically, loading the rest of the modules and showing various windows related to the project.
 
 For the first time only, once you load the game in PCSX-Redux, extract the `R4.BIN` file pressing the "Save R4.BIN" button on the "Save R4.BIN Files" window.
 
 ### Track info extractor
-This is located under the "python" directory.
-
-After extracting the `R4.BIN` file, just run the script with `python extract_tracks.py`
+After extracting the `R4.BIN` file, just run the script with `python extract_tracks.py` on the `python` folder.
 
 ### Map viewer
-In the same folder as the track info extractor, activate the virtual enviroment and run the `map_viewer.py` program.
+To launch the map viewer, run the
 
 | Normal view | Debug view | 
  :------: | :-------: 
@@ -42,7 +41,7 @@ In the same folder as the track info extractor, activate the virtual enviroment 
 
 __DO NOT__ run the map viewer while training. They will collide and get the emulator stuck.
 
-### Sector-based asset extractor
+### Sector extractor
 On PCSX-Redux, there will be a menu called "Save R4.BIN Files". In the Size in sectors field you have to enter the `sectors` number given by the "CdRead Invoked" print in console, and in the Initial sector field you have to enter the `final_sector` number given by the  first "CdPosToInt Invoked" print after the "CdRead" one. You can enter a custom filename.
 
 The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in the `extracted/` folder.
@@ -52,7 +51,7 @@ The saved file will be named `{initial_sector}-{final_sector}_{filename}.dmp` in
 ### Savestate save/load windows
 The savestates that will be used by the RL controller have to be saved with the `Save State` window.
 
-Enter Time Attack mode, choose many tracks (non-reverse tracks only, for now), choose a car (must be AT, try staying in a single speed class, and use only one driving class).
+Enter Time Attack mode, choose one or many tracks (non-reverse tracks only, for now), choose a car (must be AT, try staying in a single speed class, and use only one driving class).
 In the race, drive the car in various points of the track. Once you're in a particular place you want to test: 
 - Pause the emulator (NOT the pause in-game) with F6
 - Write an unique savestate name.
@@ -61,9 +60,9 @@ In the race, drive the car in various points of the track. Once you're in a part
 It's preferable that the savestates occur within the first lap.
 
 ### NEAT controller
-First, start the NEAT-python program by running `python r4_neat.py` in the `python` folder.
+First, start the NEAT-python program by running one of these scripts: `launch-neat.bat`(on Windows) or `launch-neat.sh` (on Linux).
 
-While the python program waits for the emulator, start PCSX-Redux, load the game as normal and after the OpenBIOS screen turns green, press the `Connect to training module` checkbox on the `Training` window. This will load the preconfigured savestate and start the training session.
+While the python program waits for the emulator, start PCSX-Redux, and after the OpenBIOS screen turns green or you see the NAMCO logo, press the `Connect to training module` checkbox on the `Training` window. This will load a savestate and start the training session.
 
 __NEEDS WORK__, genomes that make good progress can be marked as stagnant across savestate changes, consider implementing a custom Stagnation class. Hyperparameters in the `neat_config.ini` file need adjusting too. Also, it can't restore the training sessions saved on checkpoints yet (maybe a GUI for ease of selection?).
 
