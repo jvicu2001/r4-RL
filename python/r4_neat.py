@@ -94,13 +94,13 @@ def eval_genomes(genomes, config):
             # center_distance = game_car.track_info.center_distance / 1000.0
 
             # Feed the neural network
-            output = net.activate((
+            output: list[float] = net.activate((
                 speed, 
-                rpm, 
-                gear, 
+                # rpm, 
+                # gear, 
                 # gear_timeout, 
                 accel_lifted_timer,
-                traction_loss,
+                # traction_loss,
                 game_car.car_info.wrong_way,
                 game_car.car_info.free_fall,
                 drift_timeout, 
@@ -118,15 +118,24 @@ def eval_genomes(genomes, config):
             # else:
             #     packet.action.brake = 1 if output[1] > 0.5 else 0
 
+            # Select steering action
             if output[1] > output[2]:
-                if output[1] > 0.5:
-                    packet.action.steer_left = 1
                 packet.action.steer_right = 0
+                if output[1] > output[3]:
+                    packet.action.go_straigth = 0
+                    packet.action.steer_left = 1
+                else:
+                    packet.action.steer_left = 0
+                    packet.action.go_straigth = 1
             else:
-                if output[2] > 0.5:
-                    packet.action.steer_right = 1
                 packet.action.steer_left = 0
-            
+                if output[2] > output[3]:
+                    packet.action.go_straigth = 0
+                    packet.action.steer_right = 1
+                else:
+                    packet.action.steer_right = 0
+                    packet.action.go_straigth = 1
+
 
             packet.model_info.genome = genome_id
             packet.model_info.generation = pop.generation

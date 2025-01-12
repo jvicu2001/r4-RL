@@ -95,14 +95,16 @@ class GameInfo(_message.Message):
 class ModelOutput(_message.Message):
     __slots__ = ("action", "model_info", "train_flags")
     class Action(_message.Message):
-        __slots__ = ("accelerate", "steer_left", "steer_right")
+        __slots__ = ("accelerate", "steer_left", "steer_right", "go_straigth")
         ACCELERATE_FIELD_NUMBER: _ClassVar[int]
         STEER_LEFT_FIELD_NUMBER: _ClassVar[int]
         STEER_RIGHT_FIELD_NUMBER: _ClassVar[int]
+        GO_STRAIGTH_FIELD_NUMBER: _ClassVar[int]
         accelerate: bool
         steer_left: bool
         steer_right: bool
-        def __init__(self, accelerate: bool = ..., steer_left: bool = ..., steer_right: bool = ...) -> None: ...
+        go_straigth: bool
+        def __init__(self, accelerate: bool = ..., steer_left: bool = ..., steer_right: bool = ..., go_straigth: bool = ...) -> None: ...
     class ModelInfo(_message.Message):
         __slots__ = ("generation", "species", "genome", "fitness", "step")
         GENERATION_FIELD_NUMBER: _ClassVar[int]

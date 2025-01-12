@@ -65,6 +65,7 @@ message ModelOutput {
         // bool brake = 2;
         bool steer_left = 2;
         bool steer_right = 3;
+        bool go_straigth = 4;
         // bool shift_up = 5;
         // bool shift_down = 6;
     }

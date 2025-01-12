@@ -171,13 +171,16 @@ function gameModelResponseCallback(err, data, addr)
 
         if actions["steer_left"] then
             PCSX.SIO0.slots[1].pads[1].setOverride(PCSX.CONSTS.PAD.BUTTON.LEFT)
-        else
-            PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.LEFT)
+            PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.RIGHT)
         end
 
         if actions["steer_right"] then
             PCSX.SIO0.slots[1].pads[1].setOverride(PCSX.CONSTS.PAD.BUTTON.RIGHT)
-        else
+            PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.LEFT)
+        end
+
+        if actions["go_straigth"] then
+            PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.LEFT)
             PCSX.SIO0.slots[1].pads[1].clearOverride(PCSX.CONSTS.PAD.BUTTON.RIGHT)
         end
 
@@ -230,6 +233,7 @@ function SendGameDataTraining()
     imgui.RadioButton("Accelerate", current_actions["accelerate"])
     -- imgui.RadioButton("Brake", current_actions["brake"])
     imgui.RadioButton("Steer left", current_actions["steer_left"])
+    imgui.RadioButton("Go straigth", current_actions["go_straigth"])
     imgui.RadioButton("Steer right", current_actions["steer_right"])
     -- imgui.RadioButton("Shift up", current_actions["shift_up"])
     -- imgui.RadioButton("Shift down", current_actions["shift_down"])
@@ -237,8 +241,6 @@ function SendGameDataTraining()
 
     if waiting_for_response then
         PCSX.pauseEmulator()
-    else
-        PCSX.resumeEmulator()
     end
 
     paused = readValue(mem, 0x800f4e18, "uint16_t*")
@@ -255,8 +257,9 @@ function SendGameDataTraining()
             waiting_for_response = false
             luv.udp_recv_stop(udp_train_client)
         end
+    end
 
-    elseif activeCaptureTrain and paused==0 and waiting_for_response == false then
+    if activeCaptureTrain and paused==0 and waiting_for_response == false then
         curr_frame = readValue(mem, 0x800ac064, "uint32_t*")
         if last_frame ~= curr_frame then    -- Enables us to send 30 packets per second
             last_frame=curr_frame
@@ -270,6 +273,9 @@ function SendGameDataTraining()
 
             -- If the game hasn't sent any data in 120 loops, reload savestate
             if timeSinceLastSend > 120 then
+                luv.udp_recv_stop(udp_train_client)
+                waiting_for_response = false
+                timeSinceLastSend = 0
                 local file = Support.File.open("savestates/"..SaveStates[CurrentSaveStateIndex], "READ")
                 PCSX.loadSaveState(file)
                 file:close()
